@@ -13,7 +13,7 @@ add_action('template_redirect', function () {
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
     $path = '/' . trim((string) $path, '/') . '/';
 
-    if (!in_array($path, ['/faceinsight-app/', '/faceinsight-generator-v1/'], true)) {
+    if (!in_array($path, ['/faceinsight-app/', '/faceinsight-generator-v1/', '/kostenlosen-report-starten/'], true)) {
         return;
     }
 
