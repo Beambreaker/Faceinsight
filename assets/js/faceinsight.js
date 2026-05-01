@@ -26,7 +26,13 @@
     lastTestId: "",
     clientTestCode: "",
     processedImages: {},
-    gates: {}
+    gates: {},
+    loadingStoryTimer: null,
+    loadingStoryIndex: 0,
+    loadingGameScore: 0,
+    loadingGameGoal: 15,
+    wakeLock: null,
+    loadingStartedAt: 0
   };
 
   const $ = (selector, base = document) => base.querySelector(selector);
@@ -726,12 +732,16 @@
     };
   }
 
-  async function callStage(stage, data){
+  async function callStage(stage, data, timeoutMs = 120000){
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
     const response = await fetch(`api/analyze.php?stage=${encodeURIComponent(stage)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, stage })
+      body: JSON.stringify({ ...data, stage }),
+      signal: controller.signal
     });
+    window.clearTimeout(timer);
     const json = await response.json();
     if (!response.ok || !json || json.success !== true) {
       throw new Error((json && (json.message || (json.errors || []).join(", "))) || `${stage} fehlgeschlagen`);
@@ -770,6 +780,32 @@
     });
   }
 
+  async function acquireWakeLock(){
+    try {
+      if (!("wakeLock" in navigator) || state.wakeLock) return;
+      state.wakeLock = await navigator.wakeLock.request("screen");
+      state.wakeLock.addEventListener("release", () => { state.wakeLock = null; });
+    } catch (_) {}
+  }
+
+  function releaseWakeLock(){
+    if (!state.wakeLock) return;
+    state.wakeLock.release().catch(() => {});
+    state.wakeLock = null;
+  }
+
+  function resetLoadingGame(){
+    state.loadingGameScore = 0;
+    const score = $("[data-loading-game-score]");
+    if (score) score.textContent = `0 / ${state.loadingGameGoal}`;
+  }
+
+  function updateLoadingGame(){
+    state.loadingGameScore = Math.min(state.loadingGameGoal, state.loadingGameScore + 1);
+    const score = $("[data-loading-game-score]");
+    if (score) score.textContent = `${state.loadingGameScore} / ${state.loadingGameGoal}`;
+  }
+
   function startLoading(){
     const loading = $("[data-loading]");
     const report = $("[data-report]");
@@ -777,13 +813,38 @@
     if (report) report.hidden = true;
     if (error) error.hidden = true;
     if (loading) loading.hidden = false;
+    state.loadingStartedAt = Date.now();
     state.loadingProgress = 0;
+    state.loadingStoryIndex = 0;
+    resetLoadingGame();
+    acquireWakeLock();
     setLoading(8, "Bilder werden vorbereitet.");
     window.clearInterval(state.loadingTimer);
+    window.clearInterval(state.loadingStoryTimer);
     state.loadingTimer = window.setInterval(() => {
-      const cap = state.loadingProgress < 45 ? 45 : state.loadingProgress < 78 ? 78 : 93;
-      if (state.loadingProgress < cap) setLoading(state.loadingProgress + 3);
+      const cap = state.loadingProgress < 45 ? 45 : state.loadingProgress < 78 ? 78 : 98;
+      if (state.loadingProgress < cap) setLoading(state.loadingProgress + 2);
     }, 280);
+    const story = [
+      "KI prüft gerade die Fotoqualität.",
+      "KI bearbeitet deine Bilder für den Premium-Look.",
+      "KI analysiert Mimik, Kontur und sichtbare Merkmale.",
+      "KI erstellt den Steckbrief und setzt das Layout.",
+      "KI gleicht Merkmale mit der Report-Maske ab.",
+      "KI finalisiert deinen Premium-Steckbrief.",
+      "KI speichert den Report auf dem Server."
+    ];
+    state.loadingStoryTimer = window.setInterval(() => {
+      const copyNode = $("[data-loading-copy]");
+      if (!copyNode) return;
+      if (state.loadingStoryIndex < story.length) {
+        copyNode.textContent = story[state.loadingStoryIndex];
+      } else {
+        const waitSec = Math.max(1, Math.floor((Date.now() - state.loadingStartedAt) / 1000));
+        copyNode.textContent = `KI arbeitet weiter im Hintergrund ... seit ${waitSec}s.`;
+      }
+      state.loadingStoryIndex += 1;
+    }, 1700);
   }
 
   function setLoading(value, copy){
@@ -798,6 +859,8 @@
 
   function finishLoading(){
     window.clearInterval(state.loadingTimer);
+    window.clearInterval(state.loadingStoryTimer);
+    releaseWakeLock();
     setLoading(100, "Steckbrief fertig.");
     window.setTimeout(() => {
       const loading = $("[data-loading]");
@@ -844,8 +907,12 @@
         throw new Error(guidance.join(" | ") || "Precheck nicht bestanden. Bitte Bilder neu aufnehmen.");
       }
       setLoading(46, "Bilder werden hochwertig vorbereitet.");
-      const processed = await callStage("process", basePayload);
-      applyProcessedImages(processed, basePayload);
+      try {
+        const processed = await callStage("process", basePayload, 70000);
+        applyProcessedImages(processed, basePayload);
+      } catch (_) {
+        setLoading(56, "Bildbearbeitung dauert zu lange. Wir nutzen Originalbilder und machen weiter.");
+      }
       setLoading(66, "Gesichtsanalyse wird geprüft.");
       const analyzed = await callStage("analyze", basePayload);
       if (!(analyzed && analyzed.data && analyzed.data.can_generate_report)) {
@@ -872,6 +939,8 @@
 
     if (data && data.retry) {
       window.clearInterval(state.loadingTimer);
+      window.clearInterval(state.loadingStoryTimer);
+      releaseWakeLock();
       setStep(1);
       const message = data.message || "Die KI konnte die Bilder nicht sicher pruefen. Bitte neu aufnehmen.";
       setCameraStatus(message);
@@ -1080,7 +1149,7 @@
   }
 
   function iconGlyph(name){
-    const map = { face: "O", hair: "~", eye: "o", nose: "^", lips: "=", jaw: "U", scale: "+", spark: "*" };
+    const map = { face: "●", hair: "✦", eye: "◉", nose: "▲", lips: "◆", jaw: "⬢", scale: "◌", spark: "✶" };
     return map[name] || "*";
   }
 
@@ -1092,7 +1161,7 @@
     const image = item.image_url || "assets/img/archetype-modern.jpg";
     target.innerHTML = [
       '<article class="fi-archetype-hero">',
-      `<img alt="${escapeHtml(label)}" src="${escapeHtml(image)}">`,
+      `<img alt="${escapeHtml(label)}" src="${escapeHtml(image)}" onerror="this.onerror=null;this.src='assets/img/archetype-modern.jpg';">`,
       '<div>',
       `<strong>${escapeHtml(label)}</strong>`,
       `<small>Wirkungsprofil</small>`,
@@ -1328,6 +1397,15 @@
   const shareButton = $("[data-share]");
   const directButton = $("[data-direct-report]");
   const reelButton = $("[data-reel-report]");
+  const loadingGameTap = $("[data-loading-game-tap]");
+  if (loadingGameTap) loadingGameTap.addEventListener("click", () => {
+    updateLoadingGame();
+    if (state.loadingGameScore >= state.loadingGameGoal) {
+      const copyNode = $("[data-loading-copy]");
+      if (copyNode) copyNode.textContent = "Stark! Mini-Challenge geschafft. KI finalisiert den Report.";
+      loadingGameTap.textContent = "✨";
+    }
+  });
   if (printButton) printButton.addEventListener("click", () => window.print());
   if (resetButton) resetButton.addEventListener("click", () => window.location.reload());
   if (directButton) directButton.addEventListener("click", () => { window.location.href = directReportUrl(); });
@@ -1339,7 +1417,10 @@
     if (navigator.share) await navigator.share({ title: "FaceInsight Premium-Steckbrief", text: textValue, url: window.location.href });
     else if (navigator.clipboard) await navigator.clipboard.writeText(textValue);
   });
-  window.addEventListener("beforeunload", stopCamera);
+  window.addEventListener("beforeunload", () => {
+    stopCamera();
+    releaseWakeLock();
+  });
   initClientTestCode();
   setStep(1);
   if (new URLSearchParams(window.location.search).get("demo") === "premium") {

@@ -1074,6 +1074,7 @@ function openai_analysis(array $payload, array $preflight, string $key): array {
         . 'Waehle genau einen Archetypen mit Icon-Key aus observer, star, strategist, harmonizer, classic, creator. '
         . 'Waehle genau zwei reale oder historische oeffentliche Referenzpersonen als modellbasierte visuelle Aehnlichkeitsnaehe. Bevorzuge verstorbene/historische Personen oder eindeutig lizenzierbare kulturelle Referenzen; wenn du eine lebende Person waehlen wuerdest, ersetze sie durch eine sicherere historische Stilreferenz. '
         . 'Formuliere niemals "du bist diese Person", sondern nur "visuelle Ähnlichkeit nach unserem Modell". Keine Identifikation, keine Verwandtschaft, kein Gesichtsabgleich gegen eine echte Datenbank; begruende nur sichtbare Wirkungslinien wie Blickruhe, Kontur, Ausdruck, Frisur, Lippenform, Symmetrie und Gesamtausstrahlung. '
+        . 'Setze Referenz-Prozentwerte bevorzugt im Bereich 50 bis 95. Unter 50 nur dann, wenn wirklich keine tragfaehige visuelle Naehe begruendbar ist. '
         . 'Erstelle fuer jede Referenz einen kurzen Bildprompt fuer ein rundes gemaltes Medaillon, nicht fotorealistisch und nicht nach einem modernen Foto kopiert. '
         . 'Der Report soll mindestens 9 Merkmalswerte und mindestens 12 Beobachtungen enthalten. Pflichtbereiche: Hautbild, Falten, Haare, Bart falls sichtbar, Ohren, Zaehne falls sichtbar, Symmetrie, Ausdruck, Gesichtsgeometrie. '
         . 'Nutzername: ' . $u['first_name'] . '. Reales Alter: ' . intval($u['age']) . '. Selbstauskunft Geschlecht intern fuer sichere Wortwahl: ' . ($u['self_described_gender'] ?: 'nicht angegeben') . '. Make-up/Styling: ' . $u['makeup_status'] . '. '
@@ -1494,7 +1495,7 @@ function normalize_report(array $report, array $payload, array $preflight): arra
         $merged['reference']['items'][$i]['era'] = safe_text($item['era'] ?? 'historisch', 60);
         $merged['reference']['items'][$i]['status'] = safe_text($item['status'] ?? 'historisch', 40);
         $merged['reference']['items'][$i]['note'] = safe_text($item['note'] ?? 'Visuelle Aehnlichkeit nach Modell.', 180);
-        $merged['reference']['items'][$i]['percent'] = max(1, min(99, floatval($item['percent'] ?? 60)));
+        $merged['reference']['items'][$i]['percent'] = max(50, min(99, floatval($item['percent'] ?? 60)));
         $merged['reference']['items'][$i]['image_prompt'] = safe_text($item['image_prompt'] ?? 'gemaltes Medaillon, nicht fotorealistisch', 420);
         $merged['reference']['items'][$i]['image_url'] = '';
     }
@@ -1546,6 +1547,10 @@ function reference_image_url(string $label): string {
         'audreyhepburn' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Audrey_Hepburn_1959.jpg?width=180',
         'ernesthemingway' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Ernest_Hemingway_1923_passport_photo.jpg?width=180',
         'humphreybogart' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180',
+        'benkingsley' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Ben_Kingsley_2014.jpg?width=180',
+        'jksimmons' => 'https://commons.wikimedia.org/wiki/Special:FilePath/J._K._Simmons_by_Gage_Skidmore_2.jpg?width=180',
+        'bryancranston' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Bryan_Cranston_2018.jpg?width=180',
+        'seanconnery' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Sean_Connery_1983.jpg?width=180',
     ];
     return $map[$key] ?? '';
 }

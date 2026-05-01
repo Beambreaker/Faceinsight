@@ -516,6 +516,49 @@ html{
   border-color:#34537c;
   color:#dce9f9;
 }
+.fi-loading h1{
+  color:#f3deb0!important;
+  font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;
+  font-weight:800;
+  letter-spacing:.2px;
+  text-shadow:0 0 14px rgba(210,170,86,.25);
+}
+.fi-loading .fi-kicker{color:#9bc4ee!important}
+.fi-loading [data-loading-copy]{color:#e9f3ff;min-height:1.4em}
+.fi-loading-game{
+  align-items:center;
+  display:grid;
+  gap:8px;
+  grid-template-columns:1fr auto auto;
+  margin-top:12px;
+  padding:10px 12px;
+  border:1px solid rgba(210,170,86,.38);
+  border-radius:10px;
+  background:rgba(8,24,43,.76);
+}
+.fi-loading-game span{
+  color:#d6e8fb;
+  font-size:12px;
+  font-weight:700;
+}
+.fi-loading-game button{
+  border:1px solid rgba(210,170,86,.64);
+  border-radius:999px;
+  width:44px;
+  height:44px;
+  min-height:44px;
+  background:linear-gradient(135deg,#f3cb72,#c79437);
+  color:#132339;
+  font-size:22px;
+  line-height:1;
+  box-shadow:0 0 12px rgba(241,201,112,.35);
+}
+.fi-loading-game small{
+  color:#f6e0ac;
+  font-weight:800;
+  min-width:58px;
+  text-align:right;
+}
 
 .fi-premium-sheet{
   background:
@@ -535,6 +578,16 @@ html{
 .fi-wordmark,.fi-sheet-header h1,.fi-sheet-header p,
 .fi-report-card h2,.fi-fact-card strong,.fi-premium-score b{
   color:#f2e3b6;
+}
+.fi-premium-profile .fi-sheet-header h1,
+.fi-premium-profile .fi-report-card h2,
+.fi-premium-profile .fi-fact-card strong,
+.fi-premium-profile .fi-star-score b,
+.fi-premium-profile .fi-wordmark{
+  font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif!important;
+  letter-spacing:.2px!important;
+  font-weight:800!important;
+  text-transform:none!important;
 }
 
 .fi-sheet-header h1{

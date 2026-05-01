@@ -1,11 +1,11 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FaceInsight Premium Steckbrief - Analyseprofil</title>
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-1815">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260502-2240">
   <style>
     :root{
       --fi-space:14px;
@@ -270,7 +270,7 @@
     }
     .fi-portrait-clean img{
       background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.10), rgba(6,22,40,.88) 70%);
-      filter:saturate(.93) contrast(1.06) brightness(1.03);
+      filter:none;
       height:100%;
       object-fit:contain !important;
       object-position:center 12% !important;
@@ -793,24 +793,35 @@
     .fi-hero-v3{background:linear-gradient(135deg,#071426 0%,#0c2d4f 54%,#071426 100%);border:1px solid rgba(230,190,104,.46);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.36);overflow:hidden;padding:22px;position:relative}
     .fi-hero-v3:before{background:radial-gradient(circle at 10% 0%,rgba(79,158,244,.32),transparent 30%),radial-gradient(circle at 95% 10%,rgba(238,196,104,.18),transparent 30%);content:"";inset:0;pointer-events:none;position:absolute}
     .fi-hero-v3-inner{align-items:center;display:grid;gap:18px;grid-template-columns:auto 1fr auto;position:relative;z-index:1}
-    .fi-brand-v3{align-items:center;display:flex;gap:12px;white-space:nowrap}.fi-brand-v3 img{height:58px;width:58px;filter:drop-shadow(0 0 18px rgba(91,174,255,.38))}.fi-brand-v3 strong{color:#fff7df;font-family:Georgia,"Times New Roman",serif;font-size:32px;letter-spacing:-.03em;line-height:1}.fi-brand-v3 span{color:#f0bf59}
-    .fi-title-v3{text-align:center}.fi-title-v3 h1{color:#fff7df;font-family:Georgia,"Times New Roman",serif;font-size:44px;letter-spacing:.08em;line-height:.98;margin:0;text-transform:uppercase}.fi-title-v3 p{color:#d8e9fb;font-size:14px;font-weight:800;margin:9px 0 0}
+    .fi-brand-v3{align-items:center;display:flex;gap:12px;white-space:nowrap}
+    .fi-brand-v3 strong{color:#fff7df;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:32px;font-weight:900;letter-spacing:-.01em;line-height:1}
+    .fi-brand-v3 span{color:#f0bf59}
+    .fi-logo-orb-v3{
+      background:radial-gradient(circle at 50% 46%,#fff 0 14%,#f0bf59 15% 20%,#f8fbff 21% 54%,#f0bf59 55% 59%,#f8fbff 60%)!important;
+      border:1px solid rgba(241,201,112,.72)!important;
+      box-shadow:0 0 16px rgba(83,161,255,.35), 0 0 10px rgba(241,201,112,.25);
+      display:inline-block;
+      height:58px;
+      width:58px;
+    }
+    .fi-logo-orb-v3:before{
+      background:#f8fbff!important;
+      border:2px solid #f0bf59!important;
+    }
+    .fi-title-v3{text-align:center}.fi-title-v3 h1{color:#fff7df;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:44px;font-weight:900;letter-spacing:.01em;line-height:1.02;margin:0;text-transform:none}.fi-title-v3 p{color:#d8e9fb;font-size:14px;font-weight:800;margin:9px 0 0}
     .fi-actions-v3{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.fi-actions-v3 a{align-items:center;background:rgba(6,22,40,.74);border:1px solid rgba(151,190,229,.32);border-radius:999px;color:#dcebff;display:inline-flex;font-size:11px;font-weight:950;letter-spacing:.04em;min-height:38px;padding:10px 13px;text-decoration:none;text-transform:uppercase}.fi-actions-v3 a:first-child{background:linear-gradient(135deg,#f3cb72,#c79437);border-color:rgba(255,226,151,.68);color:#061522}
     .fi-fact-row-v3{display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:1}.fi-fact-row-v3 .fi-fact-card{background:rgba(3,17,32,.62);border:1px solid rgba(142,184,226,.30);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);display:grid;gap:12px;grid-template-columns:42px 1fr;margin:0;min-height:82px;padding:14px}.fi-fact-row-v3 .fi-icon{border-color:rgba(238,196,104,.56);color:#f0bf59;height:42px;width:42px}.fi-fact-row-v3 span{color:#9ebfe1;font-size:11px;font-weight:950;letter-spacing:.09em;text-transform:uppercase}.fi-fact-row-v3 strong{color:#fff0bf;display:block;font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.06;margin-top:4px;overflow-wrap:anywhere}
     .fi-stage-v3{display:grid;gap:18px;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);align-items:start}
     .fi-main-portrait-v3{background:linear-gradient(180deg,#0a223d,#061525);border:1px solid rgba(238,196,104,.45);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);margin:0;overflow:hidden;padding:12px;position:relative}
     .fi-main-portrait-v3:before{background:radial-gradient(circle at 50% 14%,rgba(83,161,255,.2),transparent 38%);content:"";inset:0;pointer-events:none;position:absolute}
     .fi-main-portrait-v3 img{
-      background:
-        radial-gradient(circle at 70% 20%, rgba(120,177,103,.25), transparent 35%),
-        radial-gradient(circle at 18% 18%, rgba(81,129,67,.23), transparent 30%),
-        linear-gradient(145deg, #0a2338, #0c2b1f 48%, #0a223a);
+      background:#071b31;
       border-radius:16px;
       display:block;
       height:380px;
       max-height:43vh;
       object-fit:cover!important;
-      object-position:center 26%!important;
+      object-position:center 18%!important;
       position:relative;
       width:100%
     }
@@ -852,8 +863,27 @@
       background:radial-gradient(circle at 32% 28%, rgba(242,202,114,.26), rgba(9,28,49,.8));
     }
     .fi-analysis-card-v3 .fi-feature-item i::before{content:attr(data-icon)}
+    .fi-profile-tags span{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      line-height:1.1;
+    }
     @media (max-width:1060px){.fi-hero-v3-inner{grid-template-columns:1fr;text-align:center}.fi-brand-v3,.fi-actions-v3{justify-content:center}.fi-fact-row-v3{grid-template-columns:1fr 1fr}.fi-stage-v3,.fi-lens-grid-v3{grid-template-columns:1fr}.fi-main-portrait-v3 img{height:360px;max-height:none}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr 1fr}}
-    @media (max-width:620px){.fi-report-top-v3{gap:14px}.fi-hero-v3{border-radius:18px;padding:18px 14px}.fi-title-v3 h1{font-size:30px;letter-spacing:.05em}.fi-title-v3 p{font-size:13px}.fi-brand-v3 strong{font-size:30px}.fi-actions-v3 a{flex:1 1 150px;justify-content:center;text-align:center}.fi-fact-row-v3{grid-template-columns:1fr}.fi-main-portrait-v3{border-radius:18px}.fi-main-portrait-v3 img{height:280px;max-height:none}.fi-impact-v3,.fi-analysis-card-v3,.fi-score-card-v3{border-radius:18px;padding:18px}.fi-impact-v3 h2{font-size:28px}.fi-impact-v3 p{font-size:16px}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score b{justify-self:start}.fi-mobile-content,.fi-workspace,.fi-premium-sheet{max-width:100%;overflow-x:hidden}}
+    @media (max-width:620px){.fi-report-top-v3{gap:14px}.fi-hero-v3{border-radius:18px;padding:18px 14px}.fi-title-v3 h1{font-size:30px;letter-spacing:.01em}.fi-title-v3 p{font-size:13px}.fi-brand-v3 strong{font-size:30px}.fi-actions-v3 a{flex:1 1 150px;justify-content:center;text-align:center}.fi-fact-row-v3{grid-template-columns:1fr}.fi-main-portrait-v3{border-radius:18px}.fi-main-portrait-v3 img{height:280px;max-height:none}.fi-impact-v3,.fi-analysis-card-v3,.fi-score-card-v3{border-radius:18px;padding:18px}.fi-impact-v3 h2{font-size:28px}.fi-impact-v3 p{font-size:16px}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score b{justify-self:start}.fi-mobile-content,.fi-workspace,.fi-premium-sheet{max-width:100%;overflow-x:hidden}}
+    @media (max-width:760px){
+      .fi-mobile-content{padding:10px}
+      .fi-custom-main,.fi-deep-grid,.fi-profile-main-grid,.fi-profile-lower-grid{grid-template-columns:1fr!important;gap:12px!important}
+      .fi-premium-profile .fi-report-card,.fi-premium-profile .fi-report-photo{min-height:auto!important}
+      .fi-premium-profile .fi-report-photo img{max-height:360px!important;height:auto!important;object-fit:cover!important}
+      .fi-analysis-list{grid-template-columns:1fr!important;gap:8px!important}
+      .fi-feature-item{grid-template-columns:28px minmax(0,1fr)!important;gap:8px!important}
+      .fi-feature-item strong,.fi-feature-item p{word-break:break-word;overflow-wrap:anywhere}
+      .fi-profile-metric{gap:6px!important}
+      .fi-profile-metric strong{white-space:normal!important;line-height:1.25!important}
+      .fi-star-score{grid-template-columns:1fr auto!important;gap:8px!important}
+      .fi-stars{min-width:0!important}
+    }
 
 
     /* v3 hard overrides: keep the portrait premium-sized even against legacy report image rules. */
@@ -871,7 +901,7 @@
   <div class="fi-mobile-shell">
     <div class="fi-mobile-status" aria-hidden="true"><i></i></div>
     <header class="fi-mobile-header">
-      <img src="assets/img/logo-klein.png" alt="FaceInsight">
+      <span class="fi-logo-orb fi-logo-orb-v3" aria-hidden="true"></span>
       <div>
         <div class="fi-mobile-title">FaceInsight Premium</div>
         <div class="fi-mobile-sub">Mobile Analyseansicht</div>
@@ -884,13 +914,13 @@
         <section class="fi-report-top-v3" aria-label="Premium Steckbrief Oberteil">
           <header class="fi-hero-v3">
             <div class="fi-hero-v3-inner">
-              <div class="fi-brand-v3"><img src="assets/img/logo-klein.png" alt="FaceInsight"><strong>Face<span>Insight</span></strong></div>
+              <div class="fi-brand-v3"><span class="fi-logo-orb fi-logo-orb-v3" aria-hidden="true"></span><strong>Face<span>Insight</span></strong></div>
               <div class="fi-title-v3">
-                <h1>Premium-Steckbrief</h1>
-                <p>KI-gesttzte visuelle Einschtzung aus neutralem Foto und Lcheln.</p>
+                <h1>Sven der Ruhige</h1>
+                <p>Premium Steckbrief</p>
               </div>
               <nav class="fi-actions-v3" aria-label="Report Schnellaktionen">
-                <a href="steckbrief-reel.html" title="Kurze Share-Version ffnen">Reel-Version</a>
+                <a href="steckbrief-reel.html" title="Kurze Share-Version &ouml;ffnen">Reel-Version</a>
                 <a href="index.html">Neuer KI-Test</a>
               </nav>
             </div>
@@ -900,7 +930,7 @@
             <article class="fi-fact-card"><i class="fi-icon fi-icon-calendar" aria-hidden="true"></i><div><span>Analyse-Level</span><strong>Premium</strong></div></article>
             <article class="fi-fact-card"><i class="fi-icon fi-icon-age" aria-hidden="true"></i><div><span>Optisches Alter</span><strong>-</strong></div></article>
             <article class="fi-fact-card"><i class="fi-icon fi-icon-star" aria-hidden="true"></i><div><span>Gesamteindruck</span><strong>-</strong></div></article>
-            <article class="fi-fact-card"><i class="fi-icon fi-icon-shield" aria-hidden="true"></i><div><span>Report-ID</span><strong data-report-id>-</strong></div></article>
+            <article class="fi-fact-card"><i class="fi-icon fi-icon-shield" aria-hidden="true"></i><div><span>Archetyp</span><strong data-report-archetype-short>-</strong></div></article>
           </section>
 
           <section class="fi-lens-grid-v3">
@@ -912,7 +942,7 @@
 
             <section class="fi-report-card fi-score-card fi-profile-score-card fi-score-card-v3">
               <h2>Merkmalswerte</h2>
-              <small class="fi-score-scale">Geometrie  Symmetrie  Ausdruck  Haut/Falten  Haare/Bart  Ohren/Zhne</small>
+              <small class="fi-score-scale">Geometrie &middot; Symmetrie &middot; Ausdruck &middot; Haut/Falten &middot; Haare/Bart &middot; Ohren/Z&auml;hne</small>
               <div class="fi-profile-metrics fi-profile-metrics-v3"></div>
               <footer>
                 <i class="fi-icon fi-icon-age" aria-hidden="true"></i>
@@ -940,43 +970,43 @@
 
         <section class="fi-deep-grid">
           <section class="fi-mini-card">
-            <h3>hnlichkeit &amp; Archetypen</h3>
+            <h3>&Auml;hnlichkeit &amp; Archetypen</h3>
             <div class="fi-archetype-hero">
               <img alt="Archetypische Referenz" src="assets/img/archetype-modern.jpg">
               <div>
-                <strong>Primrprofil: Der Stratege</strong>
-                <small>Sekundr: Der Beobachter</small>
-                <p>Analytisch, reflektiert und kontrolliert. Im Ausdruck dominiert ein ruhiger Prsenzstil mit klarer Geometrie und natrlicher Wirkung.</p>
+                <strong>Prim&auml;rprofil: Der Stratege</strong>
+                <small>Sekund&auml;r: Der Beobachter</small>
+                <p>Analytisch, reflektiert und kontrolliert. Im Ausdruck dominiert ein ruhiger Pr&auml;senzstil mit klarer Geometrie und nat&uuml;rlicher Wirkung.</p>
               </div>
             </div>
-            <div class="fi-profile-tags"><span>souvern</span><span>fokussiert</span><span>authentisch</span></div>
+            <div class="fi-profile-tags"><span>souver&auml;n</span><span>fokussiert</span><span>authentisch</span></div>
             <p style="margin:10px 0 0;font-size:12px">Archetyp-Hinweis: Die Referenz dient der stilistischen Einordnung von Haltung, Proportion und Ausdruck, nicht der Identifikation.</p>
           </section>
 
           <section class="fi-mini-card">
-            <h3>Normal vs. l?chelnd</h3>
+            <h3>Normal vs. l&auml;chelnd</h3>
             <ul class="fi-compare-points">
-              <li>Das L?cheln erh?ht die wahrgenommene Zug?nglichkeit deutlich.</li>
-              <li>Augenpartie und Mundlinie ?ffnen sich, ohne die Geometrie zu verlieren.</li>
+              <li>Das L&auml;cheln erh&ouml;ht die wahrgenommene Zug&auml;nglichkeit deutlich.</li>
+              <li>Augenpartie und Mundlinie &ouml;ffnen sich, ohne die Geometrie zu verlieren.</li>
               <li>Achsen von Augen, Nase und Kiefer bleiben stabil, dadurch wirkt die Mimik authentisch.</li>
             </ul>
           </section>
 
           <section class="fi-mini-card">
-            <h3>Reale &amp; historische hnlichkeiten</h3>
+            <h3>Reale &amp; historische &Auml;hnlichkeiten</h3>
             <article class="fi-sim-person">
               <img alt="Bryan Cranston" src="assets/img/bryan-cranston.jpg">
               <div>
                 <strong>Bryan Cranston (heute)</strong>
-                <b>81% hnlichkeit</b>
-                <small>hnliche Stirn-Hhenrelation, Augenabstand und Kieferkontur bei frontalem Blick.</small>
+                <b>81% &Auml;hnlichkeit</b>
+                <small>&Auml;hnliche Stirn-H&ouml;henrelation, Augenabstand und Kieferkontur bei frontalem Blick.</small>
               </div>
             </article>
             <article class="fi-sim-person">
               <img alt="Sean Connery" src="assets/img/sean-connery.jpg">
               <div>
                 <strong>Sean Connery (historisch)</strong>
-                <b>77% hnlichkeit</b>
+                <b>77% &Auml;hnlichkeit</b>
                 <small>Vergleichbare mittlere Gesichtsbreite, markante Untergesichtsstruktur und ruhige Mimiklinie.</small>
               </div>
             </article>
@@ -987,24 +1017,24 @@
           <div class="fi-final-icon" aria-hidden="true"></div>
           <div>
             <h2>Kurzfazit</h2>
-            <p>Geometrisch ausgewogenes Profil mit hoher Symmetrie, klarer Altersklassen-Passung und deutlich positiver Wirkung durch das Lcheln.</p>
+            <p>Geometrisch ausgewogenes Profil mit hoher Symmetrie, klarer Altersklassen-Passung und deutlich positiver Wirkung durch das L&auml;cheln.</p>
           </div>
-          <strong>souvern, prsent, analytisch</strong>
+          <strong>souver&auml;n, pr&auml;sent, analytisch</strong>
         </section>
 
         <footer class="fi-custom-footer" aria-label="Report Footer">
           <div class="fi-footer-trust">
-            <span><strong>Fundierte KI Analyse</strong><small>Claude AI-gesttzte Analyse auf Basis moderner Algorithmen.</small></span>
-            <span><strong>Individuell &amp; przise</strong><small>Persnliche Erkenntnisse fr mehr Selbstverstndnis.</small></span>
-            <span><strong>100% vertraulich</strong><small>Ihre Daten sind sicher und geschtzt.</small></span>
-            <span><strong>DSGVO-konform</strong><small>Ihre Privatsphre hat oberste Prioritt.</small></span>
+            <span><strong>Fundierte KI Analyse</strong><small>KI-gest&uuml;tzte Analyse auf Basis moderner Algorithmen.</small></span>
+            <span><strong>Individuell &amp; pr&auml;zise</strong><small>Pers&ouml;nliche Erkenntnisse f&uuml;r mehr Selbstverst&auml;ndnis.</small></span>
+            <span><strong>100% vertraulich</strong><small>Ihre Daten sind sicher und gesch&uuml;tzt.</small></span>
+            <span><strong>DSGVO-konform</strong><small>Ihre Privatsph&auml;re hat oberste Priorit&auml;t.</small></span>
           </div>
           <div class="fi-footer-row">
-            <p>Hinweis: visuelle Einschtzung anhand von Fotos. hnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse.<br>Test-ID: -</p>
+            <p>Hinweis: visuelle Einsch&auml;tzung anhand von Fotos. &Auml;hnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse.<br>Test-ID: -</p>
             <div class="fi-footer-actions">
               <button type="button" data-print>Drucken</button>
               <a href="#" data-share-native>Teilen</a>
-              <a href="steckbrief-reel.html" title="Kurze Share-Version ffnen">Reel-Version</a>
+              <a href="steckbrief-reel.html" title="Kurze Share-Version &ouml;ffnen">Reel-Version</a>
               <a href="steckbrief-direkt.html">Neu starten</a>
             </div>
           </div>
@@ -1090,7 +1120,7 @@
           '<section class="fi-report-card" style="padding:18px">',
           '<h2>Test-ID: ' + ref + '</h2>',
           '<p>Bitte einen neuen Gast-Link aus dem Owner-Modus erzeugen und erneut teilen.</p>',
-          '<div class="fi-footer-actions" style="justify-content:flex-start; margin-top:10px"><a href="steckbrief-direkt.html">Zur Steckbrief-Startseite</a><a href="steckbrief-reel.html">Reel ffnen</a></div>',
+          '<div class="fi-footer-actions" style="justify-content:flex-start; margin-top:10px"><a href="steckbrief-direkt.html">Zur Steckbrief-Startseite</a><a href="steckbrief-reel.html">Reel öffnen</a></div>',
           '</section>',
           '</article>',
           '</section>'
@@ -1136,13 +1166,25 @@
         return issued || fallbackGuestUrl();
       }
 
+      function fixText(value){
+        return String(value == null ? "" : value)
+          .replace(/Ã¤/g, "\u00E4").replace(/Ã¶/g, "\u00F6").replace(/Ã¼/g, "\u00FC")
+          .replace(/Ã„/g, "\u00C4").replace(/Ã–/g, "\u00D6").replace(/Ãœ/g, "\u00DC")
+          .replace(/ÃŸ/g, "\u00DF")
+          .replace(/Einschtzung/g, "Einsch\u00E4tzung")
+          .replace(/hnlichkeit/g, "\u00C4hnlichkeit")
+          .replace(/Lcheln/g, "L\u00E4cheln")
+          .replace(/Prsenz/g, "Pr\u00E4senz")
+          .replace(/prsent/g, "pr\u00E4sent");
+      }
+
       function text(node, value){
-        if (node && value !== undefined && value !== null && String(value).trim() !== "") node.textContent = value;
+        if (node && value !== undefined && value !== null && String(value).trim() !== "") node.textContent = fixText(value);
       }
 
       function showReportLoadError(message){
         text(document.querySelector(".fi-impact-analysis p"), message);
-        text(document.querySelector("[data-confidence-note]"), "Reportdaten konnten nicht geladen werden. Bitte prfe die Test-ID oder starte eine neue Analyse.");
+        text(document.querySelector("[data-confidence-note]"), "Reportdaten konnten nicht geladen werden. Bitte prüfe die Test-ID oder starte eine neue Analyse.");
         var footer = document.querySelector(".fi-footer-row p");
         if (footer) footer.textContent = message;
       }
@@ -1175,30 +1217,25 @@
         if (!report) return;
         var header = report.report_header || {};
         var reportId = meta.test_id || ref || "-";
+        var archetypeLabel = (report.archetype && report.archetype.label) ? String(report.archetype.label) : "der Ruhige";
         var level = (meta.product_type || header.product_type || "Premium").toString();
         var factValues = document.querySelectorAll(".fi-profile-facts .fi-fact-card strong");
         text(factValues[0], level.charAt(0).toUpperCase() + level.slice(1));
         text(factValues[1], header.visual_age_estimate || "-");
         text(factValues[2], header.overall_type || report.share_profile || "-");
-        text(factValues[3], reportId);
+        text(factValues[3], archetypeLabel);
         text(document.querySelector("[data-report-id]"), reportId);
         text(document.querySelector("[data-report-level]"), level.charAt(0).toUpperCase() + level.slice(1));
         text(document.querySelector(".fi-impact-analysis p"), report.impact || "");
-        var archetypeLabel = (report.archetype && report.archetype.label) ? String(report.archetype.label) : "Archetyp";
-        var identityTitle = (header.first_name || "Nutzer") + " - " + archetypeLabel;
+        var identityTitle = (header.first_name || "Nutzer") + " " + archetypeLabel;
         text(document.querySelector("[data-title-identity]"), identityTitle);
-        text(
-          document.querySelector(".fi-title-v3 h1"),
-          (header.first_name ? header.first_name + " - " : "") + "Premium-Steckbrief"
-        );
-        text(
-          document.querySelector(".fi-title-v3 p"),
-          "KI-Analyse: " + (header.visual_age_estimate || "optisches Alter offen") + " | Typ: " + (header.overall_type || "wird geladen")
-        );
+        text(document.querySelector(".fi-title-v3 h1"), identityTitle);
+        text(document.querySelector(".fi-title-v3 p"), "Premium Steckbrief");
+        text(document.querySelector("[data-report-archetype-short]"), archetypeLabel);
 
         var photos = meta.photos || {};
-                var portrait = document.querySelector(".fi-portrait-clean img");
-        var portraitImage = (report.visual_asset && report.visual_asset.premium_portrait_image) || photos.smile || photos.neutral;
+        var portrait = document.querySelector(".fi-portrait-clean img");
+        var portraitImage = photos.smile || photos.neutral || (report.visual_asset && report.visual_asset.premium_portrait_image);
         if (portrait && portraitImage) portrait.src = portraitImage;
         var date = meta.created_at ? new Date(meta.created_at).toLocaleDateString("de-DE") : new Date().toLocaleDateString("de-DE");
         text(document.querySelector(".fi-portrait-clean figcaption"), (header.first_name || "FaceInsight") + "  Analyse vom " + date);
@@ -1209,19 +1246,26 @@
 
         var observations = Array.isArray(report.observations) ? report.observations.slice(0, 12) : [];
         var iconForArea = function(area){
-          var key = String(area || "").toLowerCase();
-          if (key.indexOf("auge") >= 0) return "&#9679;";
-          if (key.indexOf("nase") >= 0) return "&#9679;";
-          if (key.indexOf("mund") >= 0 || key.indexOf("lipp") >= 0 || key.indexOf("zahn") >= 0) return "&#9679;";
-          if (key.indexOf("haut") >= 0 || key.indexOf("falte") >= 0) return "&#9679;";
-          if (key.indexOf("haar") >= 0 || key.indexOf("bart") >= 0) return "&#9679;";
-          if (key.indexOf("ohr") >= 0) return "&#9679;";
-          return "&#9679;";
-        };
-        var obsTarget = document.querySelector(".fi-analysis-list");
+  var key = String(area || "").toLowerCase();
+  if (key.indexOf("auge") >= 0) return "\u25C9";
+  if (key.indexOf("nase") >= 0) return "\u25B2";
+  if (key.indexOf("mund") >= 0 || key.indexOf("lipp") >= 0 || key.indexOf("zahn") >= 0) return "\u25C6";
+  if (key.indexOf("haut") >= 0 || key.indexOf("falte") >= 0) return "\u25CC";
+  if (key.indexOf("haar") >= 0 || key.indexOf("bart") >= 0) return "\u2726";
+  if (key.indexOf("ohr") >= 0) return "\u2B22";
+  return "\u25CF";
+};
+var cleanAreaLabel = function(area){
+  return String(area || "")
+    .replace(/&#\d+;?/g, "")
+    .replace(/&[a-z]+;/gi, "")
+    .replace(/^[^A-Za-z0-9]+/, "")
+    .trim() || "Analyse";
+};
+var obsTarget = document.querySelector(".fi-analysis-list");
         if (obsTarget && observations.length) {
           obsTarget.innerHTML = observations.map(function(item){
-            var area = item.area || "Analyse";
+            var area = cleanAreaLabel(item.area || "Analyse");
             return '<article class="fi-feature-item"><i data-icon="' + escapeHtml(iconForArea(area)) + '"></i><div><strong>' + escapeHtml(area) + '</strong><p>' + escapeHtml(item.finding || "") + '</p></div></article>';
           }).join("");
         }
@@ -1238,7 +1282,10 @@
         var archetypeCard = document.querySelector(".fi-archetype-hero");
         if (archetypeCard) {
           var aImg = archetypeCard.querySelector("img");
-          if (aImg && archetype.image_url) aImg.src = archetype.image_url;
+          if (aImg) {
+            aImg.onerror = function(){ this.onerror = null; this.src = "assets/img/archetype-modern.jpg"; };
+            aImg.src = archetype.image_url || "assets/img/archetype-modern.jpg";
+          }
           text(archetypeCard.querySelector("strong"), archetype.label || "Archetyp");
           text(archetypeCard.querySelector("p"), archetype.description || "");
         }
@@ -1251,14 +1298,14 @@
           var img = card.querySelector("img");
           if (img && item.image_url) img.src = item.image_url;
           text(card.querySelector("strong"), item.label || "Referenz");
-          text(card.querySelector("b"), Math.round(Number(item.percent || 0)) + "% hnlichkeit");
+          text(card.querySelector("b"), Math.max(50, Math.round(Number(item.percent || 0))) + "% Ähnlichkeit");
           text(card.querySelector("small"), item.note || "");
         });
 
         text(document.querySelector(".fi-profile-final p"), report.critical || report.share_profile || "");
         text(document.querySelector(".fi-profile-final strong"), header.overall_type || "");
         var footer = document.querySelector(".fi-footer-row p");
-        if (footer) footer.innerHTML = escapeHtml(report.legal_note || "Visuelle Einschtzung anhand von Fotos.").replace(/\n/g, "<br>") + "<br>Test-ID: " + escapeHtml(meta.test_id || ref);
+        if (footer) footer.innerHTML = escapeHtml(fixText(report.legal_note || "Visuelle Einschätzung anhand von Fotos.")).replace(/\n/g, "<br>") + "<br>Test-ID: " + escapeHtml(meta.test_id || ref);
         renderStars();
       }
 
@@ -1273,7 +1320,7 @@
           var res = await fetch(url, { credentials: "same-origin" });
           var json = await res.json().catch(function(){ return null; });
           if (!res.ok || !json || !json.success || !json.report) {
-            showReportLoadError((json && json.message) || "Report nicht gefunden. Bitte prfe die Test-ID.");
+            showReportLoadError((json && json.message) || "Report nicht gefunden. Bitte prüfe die Test-ID.");
             return false;
           }
           renderReportData(json.report, json);
@@ -1355,3 +1402,4 @@
   </script>
 </body>
 </html>
+
