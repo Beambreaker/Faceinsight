@@ -231,17 +231,17 @@
     <header class="reel-head">
       <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
       <h1>Social Reel Steckbrief</h1>
-      <p>Kurzfassung fr schnelles Teilen</p>
+      <p>Kurzfassung fuer schnelles Teilen</p>
     </header>
 
     <section class="reel-hero">
       <span class="reel-badge">Claude AI Analyse  8.7 / 10</span>
-      <img src="assets/img/user-smile.png" alt="Profilfoto lchelnd">
+      <img src="assets/img/user-smile.png" alt="Profilfoto laechelnd">
     </section>
 
     <section class="reel-copy">
-      <h2>Souvern, prsent und authentisch.</h2>
-      <p>Ruhige Geometrie, klare Symmetrie und ein natrliches Lcheln sorgen fr eine vertrauensvolle, starke Auenwirkung.</p>
+      <h2>Souveraen, praesent und authentisch.</h2>
+      <p>Ruhige Geometrie, klare Symmetrie und ein natuerliches Laecheln sorgen fuer eine vertrauensvolle, starke Aussenwirkung.</p>
     </section>
 
     <div class="reel-pills" aria-label="Kernaussagen">
@@ -285,7 +285,7 @@
       <a href="#" data-share-facebook target="_blank" rel="noopener noreferrer">Facebook</a>
     </nav>
 
-    <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollstndige Premium-Report enthlt alle Detailmodule.</p>
+      <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollstaendige Premium-Report enthaelt alle Detailmodule.</p>
   </article>
 
     <script>
@@ -306,6 +306,13 @@
       var apiBase = "./api/share-token.php";
       var reportApiBase = "./api/report-data.php";
       var signedGuestUrl = null;
+      function agentDebug(payload){
+        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify(payload)}).catch(()=>{});
+        fetch('./api/debug-log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+      }
+      // #region agent log
+      agentDebug({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:init',message:'reel init params',data:{mode:mode,ref:ref,hasExp:!!exp,hasSig:!!sig},timestamp:Date.now()});
+      // #endregion
 
       function normalizeTid(value){
         var clean = String(value || "").trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "");
@@ -324,10 +331,26 @@
         var safeRef = escapeHtml(ref || "-");
         card.innerHTML = [
           '<header class="reel-head"><img src="assets/img/logo-wordmark.png" alt="FaceInsight"><h1>Gast-Link abgelaufen</h1><p>Bitte neuen Share-Link anfordern.</p></header>',
-          '<section class="reel-copy" style="padding:16px 14px 8px"><p>Dieser Link ist ungltig oder abgelaufen. Fr den Report mit Test-ID <strong>',
+          '<section class="reel-copy" style="padding:16px 14px 8px"><p>Dieser Link ist ung\u00fcltig oder abgelaufen. F\u00fcr den Report mit Test-ID <strong>',
           safeRef,
           '</strong> bitte einen neuen Gast-Link erstellen.</p></section>',
           '<nav class="reel-actions" aria-label="Aktionen"><a class="gold" href="steckbrief-direkt.html">Zum Premium-Steckbrief</a><a href="steckbrief-reel.html">Reel neu laden</a></nav>'
+        ].join("");
+      }
+
+      function lockMissingReport(message){
+        var card = document.querySelector(".reel-card");
+        if (!card) return;
+        var safeRef = escapeHtml(ref || "-");
+        var safeMessage = escapeHtml(message || "Reportdaten konnten nicht geladen werden.");
+        card.innerHTML = [
+          '<header class="reel-head"><img src="assets/img/logo-wordmark.png" alt="FaceInsight"><h1>Report nicht verfuegbar</h1><p>Bitte Steckbrief erneut erzeugen.</p></header>',
+          '<section class="reel-copy" style="padding:16px 14px 8px"><p>',
+          safeMessage,
+          '</p><p style="margin-top:8px">Test-ID: <strong>',
+          safeRef,
+          '</strong></p></section>',
+          '<nav class="reel-actions" aria-label="Aktionen"><a class="gold" href="steckbrief-direkt.html">Zum Premium-Steckbrief</a><a href="index.html">Neuen Test starten</a></nav>'
         ].join("");
       }
 
@@ -354,6 +377,9 @@
           var res = await fetch(verifyUrl, { credentials: "same-origin" });
           if (!res.ok) return false;
           var json = await res.json();
+          // #region agent log
+          fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H4',location:'steckbrief-reel.html:verifyGuest',message:'guest verify result',data:{status:res.status,valid:!!(json&&json.valid===true)},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
           return !!(json && json.valid === true);
         } catch (_) {
           return false;
@@ -372,18 +398,41 @@
         return number > 10 ? Math.max(0, Math.min(10, number / 10)) : Math.max(0, Math.min(10, number));
       }
 
-      function renderStoredReport(report){
+      /**
+       * @param {object} report - Objekt `report` aus der API-Antwort (KI-Felder)
+       * @param {object} [envelope] - volle API-Antwort inkl. root-level `photos` (wie steckbrief-direkt.meta)
+       */
+      function renderStoredReport(report, envelope){
         if (!report) return;
+        var env = envelope || {};
+        var photos = env.photos || report.photos || {};
         var header = report.report_header || {};
         var title = document.querySelector(".reel-copy h2");
         var summary = document.querySelector(".reel-copy p");
         if (title) title.textContent = header.overall_type || report.share_profile || "FaceInsight Profil";
         if (summary) summary.textContent = report.impact || report.critical || "";
         var portrait = document.querySelector(".reel-hero img");
-        var portraitImage = report.visual_asset && report.visual_asset.premium_portrait_image;
+        var references = report.reference && Array.isArray(report.reference.items) ? report.reference.items : [];
+        var portraitSource = "none";
+        var portraitImage = "";
+        var premium = report.visual_asset && report.visual_asset.premium_portrait_image;
+        var userPhoto = photos.smile || photos.neutral || photos.profile;
+        if (premium) {
+          portraitSource = "visual_asset";
+          portraitImage = premium;
+        } else if (userPhoto) {
+          portraitSource = "photos";
+          portraitImage = userPhoto;
+        } else {
+          portraitSource = "fallback_default";
+          portraitImage = "assets/img/user-smile.png";
+        }
         if (portrait && portraitImage) portrait.src = portraitImage;
+        // #region agent log
+        agentDebug({sessionId:'b7e216',runId:'run-post-fix',hypothesisId:'H2',location:'steckbrief-reel.html:renderStoredReport',message:'report image availability',data:{hasPortraitImage:!!portraitImage,portraitSource:portraitSource,hasReferenceItems:!!(report.reference&&Array.isArray(report.reference.items)&&report.reference.items.length)},timestamp:Date.now()});
+        // #endregion
         var badge = document.querySelector(".reel-badge");
-        if (badge) badge.textContent = "FaceInsight KI Analyse  " + (header.visual_age_estimate || "optische Einordnung");
+        if (badge) badge.textContent = "FaceInsight KI Analyse | " + (header.visual_age_estimate || "optische Einordnung");
 
         var scores = Array.isArray(report.scores) ? report.scores.slice(0, 3) : [];
         var pills = document.querySelectorAll(".reel-pills span");
@@ -400,7 +449,7 @@
         if (aCopy) aCopy.textContent = archetype.description || "";
         if (aImg && archetype.image_url) aImg.src = archetype.image_url;
 
-        var refs = report.reference && Array.isArray(report.reference.items) ? report.reference.items : [];
+        var refs = references;
         var first = refs[0] || {};
         var lTitle = document.getElementById("reel-lookalike-title");
         var lCopy = document.getElementById("reel-lookalike-copy");
@@ -412,22 +461,31 @@
 
       async function loadStoredReport(){
         if (!normalizeTid(ref)) {
-          lockMissingReport("Bitte ffne das Reel ber den gltigen Link aus dem Premium-Steckbrief.");
+          // #region agent log
+          agentDebug({sessionId:'b7e216',runId:'run-post-fix',hypothesisId:'H5',location:'steckbrief-reel.html:loadStoredReport',message:'missing tid in reel request',data:{mode:mode,rawRef:params.get("ref")||"",rawTid:params.get("tid")||""},timestamp:Date.now()});
+          // #endregion
+          lockMissingReport("Bitte \u00f6ffne das Reel \u00fcber den g\u00fcltigen Link aus dem Premium-Steckbrief.");
           return false;
         }
         var reportUrl = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
         if (mode === "guest") reportUrl += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+        // #region agent log
+        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:loadStoredReport',message:'fetch report start',data:{reportUrl:reportUrl},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         try {
           var res = await fetch(reportUrl, { credentials: "same-origin" });
           var json = await res.json().catch(function(){ return null; });
+          // #region agent log
+          fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:loadStoredReport',message:'fetch report result',data:{status:res.status,ok:res.ok,jsonSuccess:!!(json&&json.success),hasReport:!!(json&&json.report),testId:(json&&json.test_id)||''},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
           if (!res.ok || !json || !json.success || !json.report) {
-            lockMissingReport((json && json.message) || "Report nicht gefunden. Bitte prfe die Test-ID.");
+            lockMissingReport((json && json.message) || "Report nicht gefunden. Bitte pr\u00fcfe die Test-ID.");
             return false;
           }
-          renderStoredReport(json.report);
+          renderStoredReport(json.report, json);
           return true;
         } catch (_) {
-          lockMissingReport("Reportdaten konnten nicht geladen werden. Bitte Verbindung prfen und erneut ffnen.");
+          lockMissingReport("Reportdaten konnten nicht geladen werden. Bitte Verbindung pr\u00fcfen und erneut \u00f6ffnen.");
           return false;
         }
       }
@@ -491,6 +549,9 @@
         }
       ];
       function applyDemoFallback(){
+        // #region agent log
+        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H3',location:'steckbrief-reel.html:applyDemoFallback',message:'demo fallback activated',data:{demoParam:params.get('demo')||''},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         var a = archetypes[Math.floor(Math.random() * archetypes.length)];
         var l = lookalikes[Math.floor(Math.random() * lookalikes.length)];
         var aTitle = document.getElementById("reel-archetype-title");

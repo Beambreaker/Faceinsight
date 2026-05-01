@@ -6,70 +6,35 @@
   <title>FaceInsight Premium Generator</title>
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#081525">
-  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-1745">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-2510">
 </head>
 <body>
   <main class="fi-app" data-fi-app>
-    <aside class="fi-sidebar" aria-label="FaceInsight Ablauf">
-      <a class="fi-brand" href="./" aria-label="FaceInsight Generator">
-        <span class="fi-brand-mark"></span>
-        <strong>Face<span>Insight</span></strong>
-      </a>
-      <p>Premium-Steckbrief aus zwei Frontfotos: neutral und laechelnd. Die Report-Maske ist fest gebaut, die Felder werden per KI gefuellt.</p>
-      <ol class="fi-steps" aria-label="Generator Schritte">
-        <li class="is-active" data-step-indicator="0"><span>1</span> Einwilligung</li>
-        <li data-step-indicator="1"><span>2</span> Kamera</li>
-        <li data-step-indicator="2"><span>3</span> Angaben</li>
-        <li data-step-indicator="3"><span>4</span> Steckbrief</li>
-      </ol>
-      <div class="fi-sidebar-note">
-        <strong>Kamera-Ampel</strong>
-        <p>Rot: nicht bereit. Gelb: nachjustieren. Gruen: Gesicht und Ausdruck sind gueltig, der Ausloeser ist frei.</p>
-      </div>
-    </aside>
-
     <section class="fi-workspace">
+      <header class="fi-gen-header">
+        <a class="fi-brand fi-gen-brand" href="./" aria-label="FaceInsight Generator">
+          <span class="fi-brand-mark"></span>
+          <strong>Face<span>Insight</span></strong>
+        </a>
+        <p class="fi-gen-tagline">Premium-Steckbrief per KI &middot; neutral und laechelnd fotografieren</p>
+      </header>
       <form class="fi-form" data-fi-form novalidate>
-        <section class="fi-step is-active" data-step="0">
-          <span class="fi-kicker">Schritt 1</span>
-          <h1>Premium-Steckbrief starten</h1>
-          <p class="fi-lead">FaceInsight erstellt eine visuelle, nicht-medizinische Einordnung aus deinen Bildern. Es findet keine Identifikation und kein biometrischer Abgleich statt.</p>
-          <input type="hidden" name="client_test_code">
-          <div class="fi-code-card">
-            <span>Analyse-Code</span>
-            <strong data-client-test-code>FI-...</strong>
-            <small>Automatischer Schluessel fuer unsere Datenbank.</small>
-          </div>
-          <div class="fi-consent-grid">
-            <label class="fi-choice">
-              <span>
-                <strong>Modus</strong>
-                <small>Free zeigt Teilergebnis, Premium zeigt alles, Pair vergleicht zwei Test-IDs.</small>
-              </span>
-              <select name="report_mode">
-                <option value="premium" selected>Premium (ohne Paywall)</option>
-                <option value="pair">Pair-Analyse</option>
-              </select>
-            </label>
-            <label class="fi-choice">
-              <input type="radio" name="storage_mode" value="delete_immediately" checked>
-              <span><strong>Direkt nach Analyse loeschen</strong><small>Empfohlener Standard fuer Privatnutzer.</small></span>
-            </label>
-            <label class="fi-choice">
-              <input type="radio" name="storage_mode" value="support_7_days">
-              <span><strong>7 Tage fuer Support behalten</strong><small>Nur wenn spaeter Speicherlogik ergaenzt wird.</small></span>
-            </label>
-          </div>
-          <label class="fi-check"><input type="checkbox" name="privacy_ack"><span>Ich stimme der Verarbeitung meiner Bilder fuer diese Analyse zu.</span></label>
-          <label class="fi-check"><input type="checkbox" name="similarity_ack"><span>Ich willige ausdruecklich ein, dass FaceInsight aus meinem Foto temporaere Vergleichsmerkmale fuer eine visuelle Aehnlichkeitsanalyse mit realen oder historischen Referenzpersonen berechnet. Das Ergebnis dient nur der Unterhaltung und ist keine Identifikation, Abstammungsanalyse oder wissenschaftliche Aussage.</span></label>
-          <label class="fi-check"><input type="checkbox" name="rights_ack"><span>Ich habe die Rechte und Einwilligungen fuer die verwendeten Bilder.</span></label>
-          <label class="fi-check"><span>Pair-Analyse Basis-Test-ID (nur fuer Modus Pair):</span><input type="text" name="pair_base_test_id" placeholder="z. B. FI-ABC123DEF456"></label>
-        </section>
+        <input type="hidden" name="client_test_code">
 
         <section class="fi-step" data-step="1">
-          <span class="fi-kicker">Schritt 2</span>
+          <span class="fi-kicker">Schritt 1</span>
           <h1>Frontfotos + optional Seitenprofil</h1>
           <p class="fi-lead">Halte das Handy auf Augenhoehe direkt vor dein Gesicht. Erst neutral ohne Laecheln aufnehmen, dann in gleicher Position sichtbar laecheln. Der Ausloeser wird erst aktiv, wenn der Rahmen gruen ist.</p>
+          <div class="fi-mode-card">
+            <label>
+              <strong>Modus</strong>
+              <small>Premium = kompletter Steckbrief, Free = Kurzvorschau.</small>
+              <select name="report_mode">
+                <option value="premium" selected>Premium</option>
+                <option value="free">Free Vorschau</option>
+              </select>
+            </label>
+          </div>
 
           <div class="fi-phone-guide" aria-label="Kamerahaltung">
             <div class="fi-phone">
@@ -87,7 +52,7 @@
           <div class="fi-photo-grid">
             <article class="fi-photo-card is-red" data-photo-card="front_neutral">
               <div class="fi-frame" data-frame="front_neutral">
-                <video playsinline muted data-video="front_neutral"></video>
+                <video playsinline webkit-playsinline muted autoplay data-video="front_neutral"></video>
                 <img alt="Front neutral" data-preview="front_neutral">
                 <canvas hidden data-canvas="front_neutral"></canvas>
                 <div class="fi-face-ring"><span></span></div>
@@ -109,7 +74,7 @@
 
             <article class="fi-photo-card is-red" data-photo-card="front_smile">
               <div class="fi-frame" data-frame="front_smile">
-                <video playsinline muted data-video="front_smile"></video>
+                <video playsinline webkit-playsinline muted autoplay data-video="front_smile"></video>
                 <img alt="Front laechelnd" data-preview="front_smile">
                 <canvas hidden data-canvas="front_smile"></canvas>
                 <div class="fi-face-ring"><span></span></div>
@@ -131,7 +96,7 @@
 
             <article class="fi-photo-card is-yellow" data-photo-card="side_profile">
               <div class="fi-frame" data-frame="side_profile">
-                <video playsinline muted data-video="side_profile"></video>
+                <video playsinline webkit-playsinline muted autoplay data-video="side_profile"></video>
                 <img alt="Seitenprofil optional" data-preview="side_profile">
                 <canvas hidden data-canvas="side_profile"></canvas>
                 <div class="fi-photo-gridlines" aria-hidden="true"></div>
@@ -153,7 +118,7 @@
         </section>
 
         <section class="fi-step" data-step="2">
-          <span class="fi-kicker">Schritt 3</span>
+          <span class="fi-kicker">Schritt 2</span>
           <h1>Angaben fuer die Maske</h1>
           <p class="fi-lead">Diese Angaben steuern die Beschriftung. Die KI prueft trotzdem, ob das Foto visuell plausibel zum angegebenen Alter passt.</p>
           <div class="fi-field-grid">
@@ -334,6 +299,25 @@
     </section>
   </main>
 
-  <script src="assets/js/faceinsight.js?v=20260501-1745"></script>
+  <script src="assets/js/faceinsight.js?v=20260501-2510"></script>
+  <div class="fi-cookie-banner" data-cookie-banner hidden role="region" aria-label="Datenschutz und Speicherwahl">
+    <div class="fi-cookie-banner-body">
+      <p class="fi-cookie-intro">Du steuerst, was wir auf diesem Geraet dauerhaft speichern. <strong>Erforderlich</strong> bleibt immer aktiv fuer Ablauf, Sicherheit und Gastlinks; optional kannst du <strong>Komfort</strong> aktivieren.</p>
+      <ul class="fi-cookie-list">
+        <li><strong>Erforderlich:</strong> Sitzungsdaten im Browser fuer Kamera/Zwischenspeicher (kein externes Tracking), Zugriff ueber geschuetzte Links.</li>
+        <li class="fi-cookie-choice-row">
+          <label class="fi-cookie-check">
+            <input type="checkbox" name="cookie_comfort" data-cookie-comfort>
+            <span><strong>Komfort:</strong> Einstellungen und Erkennung auf diesem Geraet laenger merken (localStorage).</span>
+          </label>
+        </li>
+      </ul>
+      <div class="fi-cookie-actions">
+        <button type="button" class="fi-cookie-secondary" data-cookie-essential>Nur Erforderliche</button>
+        <button type="button" class="fi-cookie-secondary" data-cookie-save>Auswahl speichern</button>
+        <button type="button" class="fi-cookie-primary" data-cookie-all>Alle akzeptieren</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

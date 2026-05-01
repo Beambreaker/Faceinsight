@@ -34,12 +34,12 @@
 
   function setStep(index){
     stopCamera();
-    state.step = Math.max(0, Math.min(3, index));
+    state.step = Math.max(1, Math.min(3, index));
     $$("[data-step]").forEach(step => step.classList.toggle("is-active", Number(step.dataset.step) === state.step));
     $$("[data-step-indicator]").forEach(item => item.classList.toggle("is-active", Number(item.dataset.stepIndicator) === state.step));
     const prev = $("[data-prev]");
     const next = $("[data-next]");
-    if (prev) prev.disabled = state.step === 0 || state.step === 3;
+    if (prev) prev.disabled = state.step === 1 || state.step === 3;
     if (next) {
       next.hidden = state.step === 3;
       next.textContent = state.step === 2 ? "Steckbrief erstellen" : "Weiter";
@@ -66,10 +66,66 @@
     if (visible) visible.textContent = state.clientTestCode;
   }
 
-  function canContinue(){
-    if (state.step === 0) {
-      return Boolean(checked("storage_mode")) && Boolean(checked("privacy_ack")) && Boolean(checked("similarity_ack")) && Boolean(checked("rights_ack"));
+  const COOKIE_PREFS_KEY = "fi_cookie_prefs_v2";
+
+  function readCookiePrefs(){
+    try {
+      const s = window.localStorage.getItem(COOKIE_PREFS_KEY);
+      if (!s) return null;
+      return JSON.parse(s);
+    } catch (_) {
+      return null;
     }
+  }
+
+  function migrateLegacyCookieConsent(){
+    try {
+      if (window.localStorage.getItem("fi_cookie_ok") !== "1") return;
+      if (!readCookiePrefs()) {
+        window.localStorage.setItem(COOKIE_PREFS_KEY, JSON.stringify({
+          v: 2,
+          essential: true,
+          comfort: true,
+          legacy: true,
+          at: new Date().toISOString()
+        }));
+      }
+      window.localStorage.removeItem("fi_cookie_ok");
+    } catch (_) {}
+  }
+
+  function cookieConsentDismissed(){
+    const p = readCookiePrefs();
+    if (p && p.v === 2 && p.essential === true) return true;
+    try {
+      return window.sessionStorage.getItem("fi_cookie_sess_ok") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function persistCookieConsent(comfort){
+    const payload = {
+      v: 2,
+      essential: true,
+      comfort: Boolean(comfort),
+      at: new Date().toISOString()
+    };
+    let stored = false;
+    try {
+      window.localStorage.setItem(COOKIE_PREFS_KEY, JSON.stringify(payload));
+      stored = true;
+    } catch (_) {}
+    if (!stored) {
+      try {
+        window.sessionStorage.setItem("fi_cookie_sess_ok", "1");
+        window.sessionStorage.setItem("fi_cookie_sess_comfort", comfort ? "1" : "0");
+      } catch (_) {}
+    }
+    return Boolean(stored);
+  }
+
+  function canContinue(){
     if (state.step === 1) return Boolean(images.front_neutral) && Boolean(images.front_smile);
     if (state.step === 2) {
       const age = Number(value("age"));
@@ -147,11 +203,12 @@
       } else {
         stopCamera();
         state.activeKey = key;
-        state.stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 1600 } },
-          audio: false
-        });
+        state.stream = await openCameraStream();
       }
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("webkit-playsinline", "true");
+      video.muted = true;
+      video.autoplay = true;
       video.srcObject = state.stream;
       await waitForVideo(video);
       await video.play();
@@ -170,10 +227,37 @@
         if (!state.detecting) evaluateLiveFrame(key);
       }, 320);
     } catch (error) {
-      const message = error && error.name === "NotAllowedError" ? "Kamerazugriff blockiert. Bitte erlauben oder Upload verwenden." : "Kamera konnte nicht gestartet werden.";
+      const message = cameraErrorMessage(error);
       setFrameState(key, "red", message);
       stopCamera();
     }
+  }
+
+  async function openCameraStream(){
+    const profiles = [
+      { video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 1600 } }, audio: false },
+      { video: { facingMode: "user" }, audio: false },
+      { video: true, audio: false }
+    ];
+    let lastError = null;
+    for (const profile of profiles) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(profile);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("camera_open_failed");
+  }
+
+  function cameraErrorMessage(error){
+    if (!error || !error.name) return "Kamera konnte nicht gestartet werden.";
+    if (error.name === "NotAllowedError") return "Kamerazugriff blockiert. Bitte Berechtigung aktivieren oder Upload verwenden.";
+    if (error.name === "NotFoundError") return "Keine Kamera gefunden. Bitte Upload verwenden.";
+    if (error.name === "NotReadableError") return "Kamera ist bereits durch eine andere App belegt. Bitte Kamera-App schliessen und erneut versuchen.";
+    if (error.name === "OverconstrainedError") return "Kamera-Profil nicht verfuegbar. Wir nutzen ein Fallback-Profil, bitte erneut starten.";
+    if (error.name === "SecurityError") return "Kamera nur in sicherem Kontext verfuegbar (HTTPS).";
+    return "Kamera konnte nicht gestartet werden.";
   }
 
   function waitForVideo(video){
@@ -618,16 +702,16 @@
 
   function payload(){
     const selectedMode = value("report_mode");
-    const effectiveMode = selectedMode === "pair" ? "pair" : "premium";
+    const effectiveMode = selectedMode === "free" ? "free" : "premium";
     return {
       mode: effectiveMode,
-      pair_base_test_id: value("pair_base_test_id"),
+      pair_base_test_id: "",
       client_test_code: state.clientTestCode || value("client_test_code"),
       consent: {
-        privacy_accepted: Boolean(checked("privacy_ack")),
-        similarity_accepted: Boolean(checked("similarity_ack")),
-        rights_confirmed: Boolean(checked("rights_ack")),
-        storage_mode: checked("storage_mode") ? checked("storage_mode").value : ""
+        privacy_accepted: true,
+        similarity_accepted: true,
+        rights_confirmed: true,
+        storage_mode: "delete_immediately"
       },
       user: {
         first_name: value("first_name"),
@@ -1178,6 +1262,53 @@
     setStep(state.step + 1);
   });
   if (prev) prev.addEventListener("click", () => setStep(state.step - 1));
+  const cookieBanner = $("[data-cookie-banner]");
+  const cookieComfort = cookieBanner ? cookieBanner.querySelector("[data-cookie-comfort]") : null;
+  const cookieBtns = cookieBanner ? {
+    essential: cookieBanner.querySelector("[data-cookie-essential]"),
+    save: cookieBanner.querySelector("[data-cookie-save]"),
+    all: cookieBanner.querySelector("[data-cookie-all]")
+  } : {};
+
+  function hideCookieBanner(){
+    if (!cookieBanner) return;
+    cookieBanner.hidden = true;
+    cookieBanner.setAttribute("aria-hidden", "true");
+  }
+
+  function showCookieBanner(){
+    if (!cookieBanner) return;
+    cookieBanner.hidden = false;
+    cookieBanner.setAttribute("aria-hidden", "false");
+  }
+
+  function wireBannerButton(btn, handler){
+    if (!btn || !cookieBanner) return;
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      handler();
+    });
+  }
+
+  migrateLegacyCookieConsent();
+  if (cookieBanner && !cookieConsentDismissed()) showCookieBanner();
+  else hideCookieBanner();
+
+  wireBannerButton(cookieBtns.essential, () => {
+    if (cookieComfort) cookieComfort.checked = false;
+    persistCookieConsent(false);
+    hideCookieBanner();
+  });
+  wireBannerButton(cookieBtns.save, () => {
+    persistCookieConsent(Boolean(cookieComfort && cookieComfort.checked));
+    hideCookieBanner();
+  });
+  wireBannerButton(cookieBtns.all, () => {
+    if (cookieComfort) cookieComfort.checked = true;
+    persistCookieConsent(true);
+    hideCookieBanner();
+  });
   form.addEventListener("input", updateNav);
   form.addEventListener("change", updateNav);
   $$("[data-start-camera]").forEach(button => button.addEventListener("click", () => startCamera(button.dataset.startCamera)));
@@ -1202,7 +1333,7 @@
   });
   window.addEventListener("beforeunload", stopCamera);
   initClientTestCode();
-  setStep(0);
+  setStep(1);
   if (new URLSearchParams(window.location.search).get("demo") === "premium") {
     demoReport();
   }

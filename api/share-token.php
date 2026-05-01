@@ -19,7 +19,14 @@ $action = strtolower((string)($_GET['action'] ?? 'verify'));
 $tid = strtoupper(trim((string)($_GET['tid'] ?? '')));
 $mode = strtolower(trim((string)($_GET['mode'] ?? 'guest')));
 $exp = intval($_GET['exp'] ?? 0);
-$sig = strtolower(trim((string)($_GET['sig'] ?? '')));
+$sig = normalize_sig((string)($_GET['sig'] ?? ''));
+debug_log('H5', 'share-token.php:request', 'incoming request', [
+    'action' => $action,
+    'mode' => $mode,
+    'tid' => $tid,
+    'hasExp' => $exp > 0,
+    'hasSig' => $sig !== '',
+]);
 
 if (!preg_match('/^FI-[A-Z0-9\-]{6,64}$/', $tid)) {
     respond(['success' => false, 'message' => 'ungueltige tid'], 400);
@@ -57,6 +64,12 @@ if ($action === 'verify') {
     }
     $expected = build_sig($tid, $mode, $exp, $secret);
     $valid = hash_equals($expected, $sig);
+    debug_log('H4', 'share-token.php:verify', 'verify result', [
+        'tid' => $tid,
+        'exp' => $exp,
+        'valid' => $valid,
+        'sigLength' => strlen($sig),
+    ]);
     respond([
         'success' => true,
         'valid' => $valid,
@@ -75,6 +88,10 @@ function build_guest_url(string $tid, int $exp, string $sig): string {
 function build_sig(string $tid, string $mode, int $exp, string $secret): string {
     $payload = $tid . '|' . $mode . '|' . $exp;
     return hash_hmac('sha256', $payload, $secret);
+}
+
+function normalize_sig(string $value): string {
+    return strtolower((string)preg_replace('/[^a-f0-9]/i', '', trim($value)));
 }
 
 function share_secret(): string {
@@ -119,4 +136,21 @@ function respond(array $data, int $status = 200): void {
     http_response_code($status);
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+function debug_log(string $hypothesisId, string $location, string $message, array $data): void {
+    // #region agent log
+    $line = json_encode([
+        'sessionId' => 'b7e216',
+        'runId' => 'run-server',
+        'hypothesisId' => $hypothesisId,
+        'location' => $location,
+        'message' => $message,
+        'data' => $data,
+        'timestamp' => (int)round(microtime(true) * 1000),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (is_string($line) && $line !== '') {
+        @file_put_contents(dirname(__DIR__) . '/debug-b7e216.log', $line . PHP_EOL, FILE_APPEND);
+    }
+    // #endregion
 }

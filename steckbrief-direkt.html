@@ -1187,6 +1187,14 @@
         var archetypeLabel = (report.archetype && report.archetype.label) ? String(report.archetype.label) : "Archetyp";
         var identityTitle = (header.first_name || "Nutzer") + " - " + archetypeLabel;
         text(document.querySelector("[data-title-identity]"), identityTitle);
+        text(
+          document.querySelector(".fi-title-v3 h1"),
+          (header.first_name ? header.first_name + " - " : "") + "Premium-Steckbrief"
+        );
+        text(
+          document.querySelector(".fi-title-v3 p"),
+          "KI-Analyse: " + (header.visual_age_estimate || "optisches Alter offen") + " | Typ: " + (header.overall_type || "wird geladen")
+        );
 
         var photos = meta.photos || {};
                 var portrait = document.querySelector(".fi-portrait-clean img");
@@ -1256,7 +1264,7 @@
 
       async function loadStoredReport(){
         if (!normalizeTid(ref)) {
-          showReportLoadError("Keine gltige Test-ID gefunden. Bitte ffne den Steckbrief ber den Report-Link der Analyse.");
+          showReportLoadError("Keine g\u00fcltige Test-ID gefunden. Bitte \u00f6ffne den Steckbrief \u00fcber den Report-Link der Analyse.");
           return false;
         }
         var url = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
@@ -1271,7 +1279,7 @@
           renderReportData(json.report, json);
           return true;
         } catch (_) {
-          showReportLoadError("Reportdaten konnten nicht geladen werden. Bitte Verbindung prfen und erneut ffnen.");
+          showReportLoadError("Reportdaten konnten nicht geladen werden. Bitte Verbindung pr\u00fcfen und erneut \u00f6ffnen.");
           return false;
         }
       }
@@ -1279,7 +1287,13 @@
       renderStars();
 
       syncReelLinks();
-      loadStoredReport();
+      verifyGuest().then(function(valid){
+        if (mode === "guest" && !valid) {
+          lockGuestView();
+          return;
+        }
+        loadStoredReport();
+      });
 
       var printBtn = document.querySelector("[data-print]");
       if (printBtn) printBtn.addEventListener("click", function(){ window.print(); });
@@ -1328,12 +1342,6 @@
         e.preventDefault();
         var shareUrl = await getShareUrl();
         window.open("https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl), "_blank", "noopener,noreferrer");
-      });
-
-      verifyGuest().then(function(valid){
-        if (mode === "guest" && !valid) {
-          lockGuestView();
-        }
       });
 
       if (mode === "owner" && normalizeTid(ref)) {

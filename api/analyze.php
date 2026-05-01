@@ -233,6 +233,8 @@ function run_process_stage(array $payload): array {
             $processed = openai_premium_portrait($payload['images'][$slot], $key, $slot);
             if ($processed === '') {
                 $warnings[] = 'ai_processing_failed_original_used';
+                // Keep a usable portrait fallback even when image-edit pipeline is unavailable.
+                $processed = valid_image($payload['images'][$slot] ?? '') ? (string)$payload['images'][$slot] : '';
             }
         }
 
@@ -649,6 +651,10 @@ function best_report_portrait(array $payload): string {
     foreach (['front_smile', 'front_neutral'] as $slot) {
         $processed = $payload['processed_images'][$slot] ?? '';
         if (valid_image($processed)) return $processed;
+    }
+    foreach (['front_smile', 'front_neutral'] as $slot) {
+        $original = $payload['images'][$slot] ?? '';
+        if (valid_image($original)) return $original;
     }
     return '';
 }
