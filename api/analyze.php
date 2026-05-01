@@ -326,6 +326,7 @@ function run_analyze_stage(array $payload): array {
     if (!$neutralOk) $blocking[] = 'neutral_expression_invalid';
     if (!$smileOk) $blocking[] = 'smile_expression_invalid';
     if ($overall < gate_value('FACEINSIGHT_GATE_ANALYZE_CONFIDENCE_MIN', 0.70)) $blocking[] = 'analysis_confidence_low';
+    $hardBlocking = array_values(array_filter($blocking, fn($reason) => $reason !== 'analysis_confidence_low'));
 
     return stage_response('analyze', [
         'request_id' => $requestId,
@@ -345,7 +346,7 @@ function run_analyze_stage(array $payload): array {
         ],
         'quality_flags' => $blocking,
         'overall_confidence' => $overall,
-        'can_generate_report' => count($blocking) === 0,
+        'can_generate_report' => count($hardBlocking) === 0,
         'blocking_reasons' => $blocking,
         'meta' => ['model' => stage_model('FACEINSIGHT_MODEL_ANALYSIS', 'gpt-5.4')],
     ], count($blocking) ? $blocking : [], []);
@@ -354,10 +355,10 @@ function run_analyze_stage(array $payload): array {
 function run_report_stage(array $payload, array $options = []): array {
     $requestId = request_id($payload);
     $warnings = [];
-    $report = fallback_report($payload);
+    $analysisResult = is_array($payload['analysis_result'] ?? null) ? $payload['analysis_result'] : null;
+    $report = fallback_report($payload, $analysisResult);
     $mode = 'fallback';
     $pairData = null;
-    $analysisResult = is_array($payload['analysis_result'] ?? null) ? $payload['analysis_result'] : null;
     $analysisBlocking = [];
     $analysisCanReport = null;
 
@@ -388,7 +389,7 @@ function run_report_stage(array $payload, array $options = []): array {
         $pipeline = openai_fast_report($payload, openai_api_key());
         if (!empty($pipeline['success']) && !empty($pipeline['report'])) {
             $mode = 'openai';
-            $report = $pipeline['report'];
+            $report = apply_analysis_constraints($pipeline['report'], $analysisResult, $payload);
             if ($analysisResult === null) {
                 $ageFlag = age_flag_from_report($report);
             }
@@ -1447,6 +1448,24 @@ function normalize_report(array $report, array $payload, array $preflight): arra
     }
     $merged['legal_note'] = 'Hinweis: visuelle Einschätzung anhand von Fotos. Ähnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse.';
     return $merged;
+}
+
+function apply_analysis_constraints(array $report, ?array $analysis, array $payload): array {
+    if (!is_array($analysis)) {
+        return $report;
+    }
+    $report['report_header']['actual_age'] = intval($payload['user']['age'] ?? 0);
+    $range = is_array($analysis['demographics']['visual_age_range'] ?? null) ? $analysis['demographics']['visual_age_range'] : [];
+    $rangeMin = intval($range[0] ?? 0);
+    $rangeMax = intval($range[1] ?? 0);
+    if ($rangeMin >= 13 && $rangeMax >= $rangeMin) {
+        $report['report_header']['visual_age_estimate'] = $rangeMin . '-' . $rangeMax . ' Jahre';
+        $flag = safe_key($analysis['demographics']['age_plausibility_flag'] ?? 'uncertain');
+        $report['report_header']['age_alignment_note'] = $flag === 'mismatch'
+            ? 'Die visuelle Altersschätzung weicht erkennbar von der Nutzereingabe ab.'
+            : 'Optisches Alter stammt aus der Fotoprüfung, nicht aus der Nutzereingabe.';
+    }
+    return $report;
 }
 
 function fill_unique_rows(array $rows, array $fallback, string $key, int $limit): array {

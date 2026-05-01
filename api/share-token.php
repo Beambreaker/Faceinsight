@@ -85,9 +85,6 @@ function share_secret(): string {
     if (is_string($env) && $env !== '') {
         return $env;
     }
-    if (defined('FACEINSIGHT_OPENAI_API_KEY') && FACEINSIGHT_OPENAI_API_KEY) {
-        return hash('sha256', (string)FACEINSIGHT_OPENAI_API_KEY . '|faceinsight-share');
-    }
     return '';
 }
 
