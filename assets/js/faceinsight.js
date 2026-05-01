@@ -1274,12 +1274,20 @@
     if (!cookieBanner) return;
     cookieBanner.hidden = true;
     cookieBanner.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("fi-cookie-open");
   }
 
   function showCookieBanner(){
     if (!cookieBanner) return;
     cookieBanner.hidden = false;
     cookieBanner.setAttribute("aria-hidden", "false");
+    document.body.classList.add("fi-cookie-open");
+    const primary = cookieBanner.querySelector("[data-cookie-all]");
+    if (primary) {
+      window.setTimeout(() => {
+        try { primary.focus({ preventScroll: true }); } catch (_) {}
+      }, 40);
+    }
   }
 
   function wireBannerButton(btn, handler){

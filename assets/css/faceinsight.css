@@ -235,7 +235,9 @@ h1{color:#18212a;font-size:30px;letter-spacing:0;line-height:1.12;margin:7px 0 1
   touch-action:manipulation;
   z-index:2147483000;
   pointer-events:auto;
+  overscroll-behavior:contain;
 }
+.fi-cookie-banner[hidden]{display:none!important}
 .fi-cookie-banner-body{
   display:flex;
   flex-direction:column;
@@ -341,6 +343,7 @@ h1{color:#18212a;font-size:30px;letter-spacing:0;line-height:1.12;margin:7px 0 1
 
 @media (max-width:760px){
   .fi-cookie-banner{bottom:calc(82px + max(12px, env(safe-area-inset-bottom)))}
+  body.fi-cookie-open .fi-nav{pointer-events:none}
   .fi-app{padding:10px}
   .fi-step{padding:16px}
   h1{font-size:27px}
