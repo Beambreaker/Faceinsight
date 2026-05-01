@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FaceInsight Premium Steckbrief - Analyseprofil</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-0315">
+  <style>
+    :root{
+      --fi-space:14px;
+      --fi-radius:8px;
+      --fi-line:rgba(122,164,205,.45);
+      --fi-glow-blue:rgba(83,161,255,.34);
+      --fi-glow-gold:rgba(255,214,120,.22);
+      --fi-text-soft:#c7d8ea;
+      --fi-text-main:#e9f3ff;
+      --fi-text-gold:#f5dfad;
+    }
+
+    body{
+      background:
+        radial-gradient(circle at 12% 6%, rgba(255,214,120,.10), transparent 22%),
+        radial-gradient(circle at 88% 4%, rgba(83,161,255,.18), transparent 28%),
+        linear-gradient(180deg, #020913 0%, #031126 46%, #020a17 100%);
+      margin:0;
+      min-height:100vh;
+      padding:16px;
+    }
+    .fi-mobile-shell{
+      width:min(100%,1220px);
+      margin:0 auto;
+      background:linear-gradient(180deg, rgba(3,14,28,.98), rgba(4,18,35,.98));
+      border:1px solid rgba(122,164,205,.38);
+      border-radius:18px;
+      box-shadow:0 30px 80px rgba(0,0,0,.58), 0 0 0 1px rgba(255,214,120,.18), inset 0 0 40px rgba(83,161,255,.08);
+      overflow:hidden;
+      position:relative;
+    }
+    .fi-mobile-status{
+      display:none;
+      justify-content:center;
+      padding:10px 0 4px;
+    }
+    .fi-mobile-status i{
+      display:block;
+      width:112px;
+      height:5px;
+      border-radius:999px;
+      background:rgba(230,240,255,.35);
+    }
+    .fi-mobile-header{
+      position:relative;
+      z-index:10;
+      background:linear-gradient(180deg, rgba(6,22,43,.92), rgba(6,22,43,.74));
+      border-bottom:1px solid rgba(122,164,205,.35);
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+    }
+    .fi-mobile-header img{height:28px;width:auto;object-fit:contain}
+    .fi-mobile-title{color:#f2dfb2;font-size:13px;font-weight:800;line-height:1.1}
+    .fi-mobile-sub{color:#b9cee6;font-size:10px}
+    .fi-mobile-dot{height:9px;width:9px;border-radius:50%;background:#48d58d;box-shadow:0 0 10px rgba(72,213,141,.7)}
+    .fi-mobile-content{
+      max-height:none;
+      overflow:visible;
+      padding:12px;
+    }
+    .fi-mobile-content::-webkit-scrollbar{width:8px}
+    .fi-mobile-content::-webkit-scrollbar-thumb{background:rgba(122,164,205,.4);border-radius:8px}
+    .fi-mobile-dock{
+      position:sticky;
+      left:0;
+      right:0;
+      bottom:0;
+      background:linear-gradient(180deg, rgba(7,27,49,.95), rgba(5,19,36,.95));
+      border-top:1px solid rgba(122,164,205,.38);
+      border-radius:0;
+      display:flex;
+      gap:8px;
+      padding:8px;
+      justify-content:flex-end;
+    }
+    .fi-mobile-dock a,.fi-mobile-dock button{
+      border:0;
+      background:rgba(13,44,76,.92);
+      color:#e9f3ff;
+      border-radius:10px;
+      min-height:34px;
+      font-size:10px;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      cursor:pointer;
+      min-width:98px;
+    }
+    .fi-mobile-dock button:first-child{background:linear-gradient(180deg, #e0bc71, #c79339);color:#172b42}
+    .fi-reel-fab{
+      display:none;
+      position:fixed;
+      right:14px;
+      bottom:92px;
+      z-index:30;
+      min-height:42px;
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(241,201,112,.72);
+      background:linear-gradient(180deg, #e6c681, #c79339);
+      color:#14253a;
+      font-size:12px;
+      font-weight:900;
+      text-decoration:none;
+      box-shadow:0 0 18px rgba(241,201,112,.55), 0 0 24px rgba(83,161,255,.28);
+      align-items:center;
+      justify-content:center;
+    }
+    .fi-top-report-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin:10px 0 0;
+    }
+    .fi-top-report-actions a{
+      align-items:center;
+      border:1px solid rgba(241,201,112,.68);
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(23,65,105,.96), rgba(8,31,56,.96));
+      box-shadow:0 0 16px rgba(83,161,255,.22), inset 0 0 0 1px rgba(255,255,255,.06);
+      color:#f8e4ad;
+      display:inline-flex;
+      font-size:12px;
+      font-weight:900;
+      justify-content:center;
+      min-height:38px;
+      padding:8px 16px;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .fi-top-report-actions a:first-child{
+      background:linear-gradient(180deg, #e6c681, #c79339);
+      color:#14253a;
+    }
+
+    .fi-premium-sheet > section{margin-top:var(--fi-space)}
+    .fi-premium-sheet > section:first-of-type{margin-top:10px}
+    .fi-premium-profile{
+      box-shadow:
+        0 0 0 1px rgba(255,214,120,.30),
+        0 28px 76px rgba(0,0,0,.66),
+        0 0 48px rgba(73,156,255,.18),
+        inset 0 0 30px rgba(255,214,120,.05);
+    }
+    .fi-premium-profile .fi-report-card,
+    .fi-premium-profile .fi-report-photo{
+      border-radius:var(--fi-radius);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,214,120,.14),
+        0 0 18px rgba(73,156,255,.12);
+    }
+
+    .fi-custom-top-logo{
+      display:flex;
+      justify-content:center;
+      margin-bottom:8px;
+    }
+    .fi-custom-top-logo img{
+      height:84px;
+      max-width:min(92%,520px);
+      object-fit:contain;
+      filter:drop-shadow(0 0 10px rgba(83,161,255,.45)) drop-shadow(0 0 18px rgba(241,201,112,.3));
+    }
+
+    .fi-custom-main{
+      display:grid;
+      gap:var(--fi-space);
+      grid-template-columns:minmax(340px,1.08fr) minmax(270px,.92fr) minmax(330px,1.05fr);
+      align-items:stretch;
+    }
+
+    .fi-portrait-clean{
+      min-height:560px;
+      position:relative;
+      overflow:hidden;
+    }
+    .fi-portrait-clean img{
+      background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.10), rgba(6,22,40,.88) 70%);
+      filter:saturate(.93) contrast(1.06) brightness(1.03);
+      height:100%;
+      object-fit:contain !important;
+      object-position:center 12% !important;
+      padding:8px 8px 0;
+      width:100%;
+    }
+    .fi-portrait-clean:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 50% 44%, transparent 34%, rgba(3,16,32,.46) 68%),
+        linear-gradient(180deg, rgba(3,11,22,.24), rgba(3,11,22,.12));
+      pointer-events:none;
+      z-index:2;
+    }
+    .fi-portrait-clean:after{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border:1px solid rgba(255,214,120,.34);
+      border-radius:var(--fi-radius);
+      box-shadow:
+        0 0 0 1px rgba(90,170,255,.20),
+        0 0 24px rgba(70,153,255,.28),
+        inset 0 0 18px rgba(255,214,120,.07);
+      pointer-events:none;
+      z-index:3;
+    }
+
+    .fi-analysis-list{display:grid;gap:8px}
+    .fi-feature-item{margin:0}
+    .fi-feature-item i{
+      font-weight:700;
+      color:#e7c77f;
+    }
+    .fi-feature-item strong{
+      color:var(--fi-text-gold);
+      font-size:13px;
+    }
+    .fi-feature-item p{
+      color:var(--fi-text-soft);
+      font-size:11px;
+      line-height:1.3;
+      margin:2px 0 0;
+    }
+    .fi-attr-level{
+      margin:0 0 10px;
+      padding:9px 10px;
+      border-radius:7px;
+      border:1px solid var(--fi-line);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      font-size:12px;
+      color:#d6e5f8;
+    }
+    .fi-attr-level strong{color:var(--fi-text-gold)}
+
+    .fi-profile-metrics{gap:10px !important}
+    .fi-profile-metric{
+      display:grid;
+      gap:6px;
+      padding-bottom:8px;
+      border-bottom:1px solid rgba(122,164,205,.24);
+    }
+    .fi-profile-metric:last-child{border-bottom:0;padding-bottom:0}
+    .fi-profile-metric > div:first-child{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .fi-profile-metric strong{
+      color:var(--fi-text-main);
+      font-size:13px;
+    }
+
+    .fi-star-score{
+      align-items:center;
+      display:grid;
+      gap:10px;
+      grid-template-columns:minmax(0,1fr) auto;
+      margin-top:0;
+    }
+    .fi-stars{
+      --fill:0%;
+      position:relative;
+      line-height:1;
+      white-space:nowrap;
+      width:100%;
+      min-width:200px;
+    }
+    .fi-stars::before,
+    .fi-stars::after{
+      content:"★★★★★★★★★★";
+      display:block;
+      font-size:18px;
+      letter-spacing:2px;
+    }
+    .fi-stars::before{
+      color:rgba(255,231,179,.24);
+      text-shadow:0 0 5px rgba(255,214,120,.10);
+    }
+    .fi-stars::after{
+      background:linear-gradient(180deg, #fff2b0 0%, #ffd86e 38%, #ebb94d 70%, #c88a1d 100%);
+      background-clip:text;
+      -webkit-background-clip:text;
+      color:transparent;
+      left:0;
+      overflow:hidden;
+      position:absolute;
+      top:0;
+      width:var(--fill,0%);
+      filter:drop-shadow(0 0 5px rgba(255,214,120,.60));
+    }
+    .fi-stars i{
+      position:absolute;
+      top:-2px;
+      left:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 18% 35%, rgba(255,255,255,.45) 0 1px, transparent 2px),
+        radial-gradient(circle at 56% 50%, rgba(255,255,255,.28) 0 1px, transparent 2px),
+        radial-gradient(circle at 84% 42%, rgba(255,255,255,.42) 0 1px, transparent 2px);
+      mix-blend-mode:screen;
+      opacity:.35;
+      animation:fiStarSparkle 3s ease-in-out infinite;
+    }
+    .fi-star-score b{
+      color:#ffdf99;
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:14px;
+      text-shadow:0 0 8px rgba(255,214,120,.38);
+      min-width:64px;
+      text-align:right;
+    }
+    @keyframes fiStarSparkle{
+      0%,100%{opacity:.22}
+      50%{opacity:.48}
+    }
+
+    .fi-deep-grid{
+      display:grid;
+      gap:var(--fi-space);
+      grid-template-columns:1fr 1fr 1fr;
+      align-items:stretch;
+    }
+    .fi-mini-card{
+      background:
+        radial-gradient(circle at 8% 10%, rgba(255,214,120,.08), transparent 24%),
+        radial-gradient(circle at 90% 12%, rgba(89,168,255,.10), transparent 24%),
+        linear-gradient(180deg, rgba(8,31,56,.98), rgba(5,21,39,.99));
+      border:1px solid var(--fi-line);
+      border-radius:var(--fi-radius);
+      padding:12px;
+      box-shadow:inset 0 0 16px rgba(255,214,120,.04);
+    }
+    .fi-mini-card h3{
+      margin:0 0 10px;
+      color:var(--fi-text-gold);
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:24px;
+      line-height:1.05;
+      letter-spacing:.4px;
+    }
+    .fi-mini-card p,
+    .fi-mini-card small{
+      color:var(--fi-text-soft);
+      line-height:1.35;
+    }
+
+    .fi-archetype-hero{
+      display:grid;
+      gap:10px;
+      grid-template-columns:78px minmax(0,1fr);
+      align-items:start;
+    }
+    .fi-archetype-hero img{
+      height:78px;
+      width:78px;
+      object-fit:cover;
+      border-radius:50%;
+      border:1px solid rgba(210,170,86,.7);
+      box-shadow:0 0 16px rgba(83,161,255,.20);
+    }
+    .fi-archetype-hero strong{
+      color:var(--fi-text-gold);
+      display:block;
+      font-size:14px;
+      margin:0 0 2px;
+    }
+    .fi-archetype-hero small{
+      display:block;
+      font-size:12px;
+      margin:0 0 6px;
+    }
+    .fi-profile-tags{
+      margin-top:10px;
+      display:grid;
+      gap:8px;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    .fi-profile-tags span{
+      text-align:center;
+      font-size:11px;
+      padding:8px;
+      border-radius:7px;
+      border:1px solid rgba(210,170,86,.40);
+      background:rgba(210,170,86,.08);
+      color:#f0d396;
+      font-weight:700;
+    }
+
+    .fi-ns-compare{
+      display:grid;
+      gap:8px;
+      grid-template-columns:1fr 1fr;
+      margin-bottom:8px;
+    }
+    .fi-ns-compare figure{margin:0}
+    .fi-ns-compare img{
+      width:90px;
+      height:90px;
+      object-fit:cover;
+      border-radius:50%;
+      border:1px solid rgba(122,164,205,.52);
+      display:block;
+      margin:0 auto;
+      box-shadow:
+        0 0 0 2px rgba(116,196,255,.34),
+        0 0 16px rgba(66,159,255,.36),
+        inset 0 0 10px rgba(255,214,120,.12);
+      filter:saturate(.96) contrast(1.08);
+    }
+    .fi-ns-compare figcaption{
+      text-align:center;
+      color:#b9cee4;
+      font-size:11px;
+      margin-top:4px;
+    }
+    .fi-compare-points{
+      margin:8px 0 0;
+      padding-left:16px;
+      color:#c9d9ec;
+      font-size:12px;
+      line-height:1.35;
+    }
+    .fi-compare-points li{margin-bottom:4px}
+
+    .fi-sim-person{
+      display:grid;
+      gap:10px;
+      grid-template-columns:62px minmax(0,1fr);
+      margin:0 0 10px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(122,164,205,.28);
+    }
+    .fi-sim-person:last-child{
+      border-bottom:0;
+      margin-bottom:0;
+      padding-bottom:0;
+    }
+    .fi-sim-person img{
+      height:62px;
+      width:62px;
+      object-fit:cover;
+      border-radius:50%;
+      border:1px solid rgba(210,170,86,.62);
+    }
+    .fi-sim-person strong{display:block;color:var(--fi-text-gold)}
+    .fi-sim-person b{display:block;color:#dfbf82;margin:2px 0 4px}
+
+    .fi-final-icon{display:none !important}
+    .fi-profile-final p{
+      color:var(--fi-text-main) !important;
+      font-size:12px !important;
+      line-height:1.35 !important;
+    }
+    .fi-custom-footer{
+      margin-top:14px;
+      padding-top:12px;
+      border-top:1px solid rgba(122,164,205,.32);
+      display:grid;
+      gap:10px;
+    }
+    .fi-footer-trust{
+      display:grid;
+      gap:10px;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+    .fi-footer-trust span{
+      background:linear-gradient(180deg, rgba(8,31,56,.96), rgba(5,21,39,.98));
+      border:1px solid rgba(122,164,205,.42);
+      border-radius:8px;
+      padding:9px 10px;
+      min-height:62px;
+    }
+    .fi-footer-trust strong{display:block;color:var(--fi-text-gold);font-size:11px;text-transform:uppercase}
+    .fi-footer-trust small{display:block;color:var(--fi-text-soft);font-size:11px;line-height:1.28}
+    .fi-footer-row{
+      display:grid;
+      gap:10px;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+    }
+    .fi-footer-row p{margin:0;color:var(--fi-text-soft);font-size:12px;line-height:1.35}
+    .fi-footer-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .fi-footer-actions button,.fi-footer-actions a{
+      align-items:center;
+      background:linear-gradient(180deg, rgba(16,58,98,.96), rgba(11,41,74,.96));
+      border:1px solid rgba(122,164,205,.52);
+      border-radius:8px;
+      color:#eaf3ff;
+      display:inline-flex;
+      font-weight:800;
+      min-height:40px;
+      padding:8px 12px;
+      text-decoration:none;
+      cursor:pointer;
+    }
+    .fi-footer-actions button:first-child{
+      background:linear-gradient(180deg, #e0bc71, #c79339);
+      color:#14253a;
+      border-color:rgba(255,214,120,.7);
+    }
+    .fi-footer-social{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .fi-footer-social a{
+      align-items:center;
+      border:1px solid rgba(122,164,205,.42);
+      border-radius:999px;
+      color:#d9e9ff;
+      display:inline-flex;
+      font-size:12px;
+      font-weight:800;
+      min-height:32px;
+      padding:6px 11px;
+      text-decoration:none;
+      background:rgba(7,27,49,.85);
+    }
+
+    @media (max-width:1120px){
+      .fi-custom-main,
+      .fi-deep-grid{
+        grid-template-columns:1fr;
+      }
+      .fi-portrait-clean{
+        min-height:460px;
+      }
+    }
+    @media (max-width:760px){
+      body{padding:0}
+      .fi-mobile-shell{
+        width:100%;
+        border-radius:0;
+        min-height:100vh;
+      }
+      .fi-mobile-status{display:flex}
+      .fi-mobile-header{
+        position:sticky;
+        top:0;
+        backdrop-filter:blur(8px);
+      }
+      .fi-mobile-content{max-height:calc(100vh - 126px)}
+      .fi-mobile-dock{
+        position:absolute;
+        left:8px;
+        right:8px;
+        bottom:8px;
+        border:1px solid rgba(122,164,205,.38);
+        border-radius:14px;
+        display:grid;
+        grid-template-columns:repeat(4,minmax(0,1fr));
+        justify-content:stretch;
+      }
+      .fi-mobile-dock a,.fi-mobile-dock button{min-width:0}
+      .fi-reel-fab{display:inline-flex}
+      .fi-custom-top-logo img{height:64px}
+      .fi-profile-tags{
+        grid-template-columns:1fr 1fr;
+      }
+      .fi-stars{
+        min-width:150px;
+      }
+      .fi-stars::before,
+      .fi-stars::after{
+        font-size:16px;
+        letter-spacing:1.5px;
+      }
+      .fi-ns-compare img{
+        width:78px;
+        height:78px;
+      }
+      .fi-profile-metric strong{
+        font-size:12px;
+      }
+      .fi-footer-trust{grid-template-columns:1fr 1fr}
+      .fi-footer-row{grid-template-columns:1fr}
+      .fi-footer-actions,.fi-footer-social{justify-content:flex-start}
+    }
+    body.view-mobile{padding:0}
+    body.view-mobile .fi-mobile-shell{
+      width:100%;
+      border-radius:0;
+      min-height:100vh;
+    }
+    body.view-mobile .fi-mobile-status{display:flex}
+    body.view-mobile .fi-mobile-header{
+      position:sticky;
+      top:0;
+      backdrop-filter:blur(8px);
+    }
+    body.view-mobile .fi-mobile-content{max-height:calc(100vh - 126px);overflow:auto;padding:10px 10px 90px}
+    body.view-mobile .fi-mobile-dock{
+      position:absolute;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      border:1px solid rgba(122,164,205,.38);
+      border-radius:14px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      justify-content:stretch;
+    }
+    body.view-mobile .fi-mobile-dock a,
+    body.view-mobile .fi-mobile-dock button{min-width:0}
+    body.view-mobile .fi-reel-fab{display:inline-flex}
+    body.view-desktop .fi-mobile-shell{width:min(100%,1220px)}
+  </style>
+</head>
+<body>
+  <div class="fi-mobile-shell">
+    <div class="fi-mobile-status" aria-hidden="true"><i></i></div>
+    <header class="fi-mobile-header">
+      <img src="assets/img/logo-klein.png" alt="FaceInsight">
+      <div>
+        <div class="fi-mobile-title">FaceInsight Premium</div>
+        <div class="fi-mobile-sub">Mobile Analyseansicht</div>
+      </div>
+      <span class="fi-mobile-dot" aria-label="Status aktiv"></span>
+    </header>
+    <main class="fi-mobile-content">
+      <section class="fi-workspace">
+      <article class="fi-premium-sheet fi-premium-profile" style="margin:16px auto;" aria-label="Premium Steckbrief">
+        <header class="fi-sheet-header fi-profile-header">
+          <div class="fi-custom-top-logo" aria-label="FaceInsight Logo">
+            <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
+          </div>
+          <h1>Steckbrief - Analyseprofil</h1>
+          <div class="fi-top-report-actions" aria-label="Report Schnellaktionen">
+            <a href="steckbrief-reel.html" title="Kurze Share-Version öffnen">Reel-Version anzeigen</a>
+            <a href="index.html">Neuen KI-Test starten</a>
+          </div>
+          <p>FaceInsight Premium Report · KI-gestützte Gesichtsanalyse</p>
+        </header>
+
+        <section class="fi-fact-row fi-profile-facts" aria-label="Report Eckdaten">
+          <article class="fi-fact-card"><i class="fi-icon fi-icon-calendar" aria-hidden="true"></i><div><span>Alter (real)</span><strong>57 Jahre</strong></div></article>
+          <article class="fi-fact-card"><i class="fi-icon fi-icon-age" aria-hidden="true"></i><div><span>Optisches Alter</span><strong>54-59</strong></div></article>
+          <article class="fi-fact-card"><i class="fi-icon fi-icon-star" aria-hidden="true"></i><div><span>Gesamteindruck</span><strong>souverän, klar, authentisch</strong></div></article>
+        </section>
+
+        <section class="fi-blueprint-panel" aria-label="Wirkungsanalyse">
+          <div class="fi-blueprint-scan" aria-hidden="true"></div>
+          <article class="fi-impact-analysis">
+            <span>KI-Ergebnis</span>
+            <h2>Wie wirke ich auf andere</h2>
+            <p>Ruhig, erfahren und vertrauenswürdig. Das offene Lächeln steigert die Nahbarkeit deutlich, während die klare Frontalansicht Stabilität und Präsenz vermittelt.</p>
+          </article>
+        </section>
+
+        <section class="fi-custom-main">
+          <figure class="fi-report-photo fi-profile-photo fi-portrait-clean">
+            <img alt="Premium Portrait lächelnd" src="assets/img/user-smile.png">
+            <figcaption>Persönliches Profil · Analyse vom 30.04.2026</figcaption>
+          </figure>
+
+          <section class="fi-report-card fi-analysis-card">
+            <h2>Gesichtsanalyse</h2>
+            <p class="fi-attr-level"><strong>Allgemeiner Attraktivitätslevel (altersklassengerecht, rein geometrisch-analytisch):</strong> 8.7 / 10</p>
+            <div class="fi-analysis-list">
+              <article class="fi-feature-item"><i data-icon="G"></i><div><strong>Gesichtsgeometrie</strong><p>Die vertikale Drittelung ist ausgewogen und klar strukturiert.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="S"></i><div><strong>Symmetrie</strong><p>Die Achsen von Stirn, Nase und Mund verlaufen stabil mit nur kleinen natürlichen Abweichungen.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="A"></i><div><strong>Ausdruck</strong><p>Der Wechsel von neutral zu lächelnd wirkt kontrolliert, natürlich und glaubwürdig.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="H"></i><div><strong>Hautbild</strong><p>Das Hautbild zeigt eine gleichmäßige Textur mit konsistenter Lichtreaktion.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="F"></i><div><strong>Faltenbild</strong><p>Feine altersgerechte Linien sind sichtbar, ohne asymmetrische Dominanz.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="R"></i><div><strong>Haare</strong><p>Haarlinie und Dichte wirken stimmig zur Gesichtsform und zum Alter.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="B"></i><div><strong>Bart</strong><p>Die Bartstruktur unterstützt die Untergesichtsform und bleibt klar konturiert.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="O"></i><div><strong>Ohren</strong><p>Die Ohren sind proportional zur Gesichtsbreite und gut ausgerichtet.</p></div></article>
+              <article class="fi-feature-item"><i data-icon="Z"></i><div><strong>Zähne</strong><p>Im Lächeln zeigt sich eine ruhige Frontausrichtung mit harmonischer Bogenwirkung.</p></div></article>
+            </div>
+          </section>
+
+          <section class="fi-report-card fi-score-card fi-profile-score-card">
+            <h2>Merkmalswerte</h2>
+            <small class="fi-score-scale">(1 = niedrig | 10 = sehr ausgeprägt)</small>
+            <div class="fi-profile-metrics">
+              <article class="fi-profile-metric"><div><strong>Geometrische Harmonie</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.8"><i></i></span><b>8.8 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Symmetrie</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.3"><i></i></span><b>8.3 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Ausdruckslesbarkeit</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="9.0"><i></i></span><b>9.0 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Hautbild-Klarheit</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.4"><i></i></span><b>8.4 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Falten-Harmonie</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.2"><i></i></span><b>8.2 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Haardynamik</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.1"><i></i></span><b>8.1 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Bartstruktur</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.7"><i></i></span><b>8.7 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Ohren-Proportion</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.1"><i></i></span><b>8.1 / 10</b></div></article>
+              <article class="fi-profile-metric"><div><strong>Zahnlinien-Symmetrie</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="8.6"><i></i></span><b>8.6 / 10</b></div></article>
+            </div>
+          </section>
+        </section>
+
+        <section class="fi-deep-grid">
+          <section class="fi-mini-card">
+            <h3>Ähnlichkeit &amp; Archetypen</h3>
+            <div class="fi-archetype-hero">
+              <img alt="Archetypische Referenz" src="assets/img/archetype-modern.jpg">
+              <div>
+                <strong>Primärprofil: Der Stratege</strong>
+                <small>Sekundär: Der Beobachter</small>
+                <p>Analytisch, reflektiert und kontrolliert. Im Ausdruck dominiert ein ruhiger Präsenzstil mit klarer Geometrie und natürlicher Wirkung.</p>
+              </div>
+            </div>
+            <div class="fi-profile-tags"><span>souverän</span><span>fokussiert</span><span>authentisch</span></div>
+            <p style="margin:10px 0 0;font-size:12px">Archetyp-Hinweis: Die Referenz dient der stilistischen Einordnung von Haltung, Proportion und Ausdruck, nicht der Identifikation.</p>
+          </section>
+
+          <section class="fi-mini-card">
+            <h3>Normal vs. lächelnd</h3>
+            <div class="fi-ns-compare">
+              <figure><img alt="Normal" src="assets/img/user-neutral.png"><figcaption>Normal</figcaption></figure>
+              <figure><img alt="Lächelnd" src="assets/img/user-smile.png"><figcaption>Lächelnd</figcaption></figure>
+            </div>
+            <ul class="fi-compare-points">
+              <li>Das Lächeln erhöht die wahrgenommene Zugänglichkeit deutlich.</li>
+              <li>Augenpartie und Mundlinie öffnen sich, ohne die Geometrie zu verlieren.</li>
+              <li>Achsen von Augen, Nase und Kiefer bleiben stabil, dadurch wirkt die Mimik authentisch.</li>
+            </ul>
+          </section>
+
+          <section class="fi-mini-card">
+            <h3>Reale &amp; historische Ähnlichkeiten</h3>
+            <article class="fi-sim-person">
+              <img alt="Bryan Cranston" src="assets/img/bryan-cranston.jpg">
+              <div>
+                <strong>Bryan Cranston (heute)</strong>
+                <b>81% Ähnlichkeit</b>
+                <small>Ähnliche Stirn-Höhenrelation, Augenabstand und Kieferkontur bei frontalem Blick.</small>
+              </div>
+            </article>
+            <article class="fi-sim-person">
+              <img alt="Sean Connery" src="assets/img/sean-connery.jpg">
+              <div>
+                <strong>Sean Connery (historisch)</strong>
+                <b>77% Ähnlichkeit</b>
+                <small>Vergleichbare mittlere Gesichtsbreite, markante Untergesichtsstruktur und ruhige Mimiklinie.</small>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="fi-report-card fi-final-card fi-profile-final">
+          <div class="fi-final-icon" aria-hidden="true"></div>
+          <div>
+            <h2>Kurzfazit</h2>
+            <p>Geometrisch ausgewogenes Profil mit hoher Symmetrie, klarer Altersklassen-Passung und deutlich positiver Wirkung durch das Lächeln.</p>
+          </div>
+          <strong>souverän, präsent, analytisch</strong>
+        </section>
+
+        <footer class="fi-custom-footer" aria-label="Report Footer">
+          <div class="fi-footer-trust">
+            <span><strong>Fundierte KI Analyse</strong><small>Claude AI-gestützte Analyse auf Basis moderner Algorithmen.</small></span>
+            <span><strong>Individuell &amp; präzise</strong><small>Persönliche Erkenntnisse für mehr Selbstverständnis.</small></span>
+            <span><strong>100% vertraulich</strong><small>Ihre Daten sind sicher und geschützt.</small></span>
+            <span><strong>DSGVO-konform</strong><small>Ihre Privatsphäre hat oberste Priorität.</small></span>
+          </div>
+          <div class="fi-footer-row">
+            <p>Hinweis: visuelle Einschätzung anhand von Fotos. Ähnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse.<br>Test-ID: FI-MOLS80T2W4XB2</p>
+            <div class="fi-footer-actions">
+              <button type="button" data-print>Drucken</button>
+              <a href="#" data-share-native>Teilen</a>
+              <a href="steckbrief-reel.html" title="Kurze Share-Version öffnen">Reel-Version</a>
+              <a href="steckbrief-direkt.html">Neu starten</a>
+            </div>
+          </div>
+          <div class="fi-footer-social" aria-label="Social teilen">
+            <a href="#" data-share-whatsapp>WhatsApp</a>
+            <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer">TikTok</a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="#" data-share-facebook>Facebook</a>
+          </div>
+        </footer>
+      </article>
+      </section>
+    </main>
+    <nav class="fi-mobile-dock" aria-label="Schnellaktionen">
+      <button type="button" data-print-dock>Drucken</button>
+      <a href="#" data-share-native-dock>Teilen</a>
+      <a href="steckbrief-reel.html">Reel</a>
+      <a href="#" data-share-whatsapp-dock>WhatsApp</a>
+      <a href="steckbrief-direkt.html">Neu</a>
+    </nav>
+    <a class="fi-reel-fab" href="steckbrief-reel.html" aria-label="Zur Reel-Version">🎬 Reel-Version</a>
+  </div>
+
+    <script>
+    (function(){
+      "use strict";
+
+      var params = new URLSearchParams(window.location.search);
+      var forcedView = params.get("view");
+      if (forcedView === "mobile") document.body.classList.add("view-mobile");
+      if (forcedView === "desktop") document.body.classList.add("view-desktop");
+
+      var mode = (params.get("mode") || "owner").toLowerCase();
+      var exp = params.get("exp") || "";
+      var sig = params.get("sig") || "";
+      var fallbackTid = "FI-MOLS80T2W4XB2";
+      var ref = normalizeTid(params.get("ref") || params.get("tid") || extractTestIdFromPage() || fallbackTid) || fallbackTid;
+      var apiBase = "./api/share-token.php";
+      var reportApiBase = "./api/report-data.php";
+      var shareText = "FaceInsight Premium-Steckbrief";
+      var currentUrl = window.location.href;
+      var signedGuestUrl = null;
+
+      function normalizeTid(value){
+        var clean = String(value || "").trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "");
+        return /^FI-[A-Z0-9\-]{6,64}$/.test(clean) ? clean : "";
+      }
+
+      function extractTestIdFromPage(){
+        var source = document.body ? document.body.textContent || "" : "";
+        var match = source.match(/FI-[A-Z0-9\-]{6,64}/);
+        return match ? match[0] : "";
+      }
+
+      function reelGuestUrl(){
+        return "steckbrief-reel.html?mode=guest&ref=" + encodeURIComponent(ref) + "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+      }
+
+      function reelOwnerUrl(){
+        return "steckbrief-reel.html?mode=owner&tid=" + encodeURIComponent(ref);
+      }
+
+      function fallbackGuestUrl(){
+        var reelPath = window.location.pathname.replace(/steckbrief-direkt\.html$/i, "steckbrief-reel.html");
+        if (!/steckbrief-reel\.html$/i.test(reelPath)) reelPath = "/wp-content/faceinsight-generator/steckbrief-reel.html";
+        return window.location.origin + reelPath + "?mode=guest&ref=" + encodeURIComponent(ref);
+      }
+
+      function syncReelLinks(){
+        var url = mode === "guest" && exp && sig ? reelGuestUrl() : reelOwnerUrl();
+        document.querySelectorAll('a[href="steckbrief-reel.html"]').forEach(function(link){
+          link.setAttribute("href", url);
+        });
+      }
+
+      function lockGuestView(){
+        var content = document.querySelector(".fi-mobile-content");
+        if (!content) return;
+        content.innerHTML = [
+          '<section class="fi-workspace">',
+          '<article class="fi-premium-sheet fi-premium-profile" style="margin:16px auto; padding:22px">',
+          '<header class="fi-sheet-header fi-profile-header"><h1>Gast-Link abgelaufen</h1><p>Dieser Link ist ungültig oder nicht mehr aktiv.</p></header>',
+          '<section class="fi-report-card" style="padding:18px">',
+          '<h2>Test-ID: ' + ref + '</h2>',
+          '<p>Bitte einen neuen Gast-Link aus dem Owner-Modus erzeugen und erneut teilen.</p>',
+          '<div class="fi-footer-actions" style="justify-content:flex-start; margin-top:10px"><a href="steckbrief-direkt.html">Zur Steckbrief-Startseite</a><a href="steckbrief-reel.html">Reel öffnen</a></div>',
+          '</section>',
+          '</article>',
+          '</section>'
+        ].join("");
+        var dock = document.querySelector(".fi-mobile-dock");
+        if (dock) dock.style.display = "none";
+        var fab = document.querySelector(".fi-reel-fab");
+        if (fab) fab.style.display = "none";
+      }
+
+      async function issueGuestUrl(){
+        if (signedGuestUrl) return signedGuestUrl;
+        if (!normalizeTid(ref)) return null;
+        try {
+          var res = await fetch(apiBase + "?action=issue&tid=" + encodeURIComponent(ref), { credentials: "same-origin" });
+          if (!res.ok) return null;
+          var json = await res.json();
+          if (json && json.success && json.guest_url) {
+            signedGuestUrl = json.guest_url;
+            return signedGuestUrl;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      async function verifyGuest(){
+        if (mode !== "guest") return true;
+        if (!normalizeTid(ref) || !exp || !sig) return false;
+        try {
+          var verifyUrl = apiBase + "?action=verify&mode=guest&tid=" + encodeURIComponent(ref) + "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+          var res = await fetch(verifyUrl, { credentials: "same-origin" });
+          if (!res.ok) return false;
+          var json = await res.json();
+          return !!(json && json.valid === true);
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function getShareUrl(){
+        if (mode !== "owner") return currentUrl;
+        var issued = await issueGuestUrl();
+        return issued || fallbackGuestUrl();
+      }
+
+      function text(node, value){
+        if (node && value !== undefined && value !== null && String(value).trim() !== "") node.textContent = value;
+      }
+
+      function escapeHtml(value){
+        return String(value || "").replace(/[&<>"']/g, function(char){
+          return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char];
+        });
+      }
+
+      function scoreToTen(value){
+        var number = Number(value || 0);
+        if (!isFinite(number)) return 0;
+        return number > 10 ? Math.max(0, Math.min(10, number / 10)) : Math.max(0, Math.min(10, number));
+      }
+
+      function renderStars(){
+        document.querySelectorAll(".fi-stars[data-score]").forEach(function(node){
+          var raw = Number(node.getAttribute("data-score"));
+          if (!isFinite(raw)) raw = 0;
+          var quarter = Math.round(Math.max(0, Math.min(10, raw)) * 4) / 4;
+          var fill = (quarter / 10) * 100;
+          node.style.setProperty("--fill", fill.toFixed(2) + "%");
+          node.setAttribute("aria-label", quarter.toFixed(2) + " von 10 Sternen");
+          node.setAttribute("title", quarter.toFixed(2) + " / 10");
+        });
+      }
+
+      function renderReportData(report, meta){
+        if (!report) return;
+        var header = report.report_header || {};
+        var factValues = document.querySelectorAll(".fi-profile-facts .fi-fact-card strong");
+        text(factValues[0], (header.actual_age || (meta.user && meta.user.age) || "-") + " Jahre");
+        text(factValues[1], header.visual_age_estimate || "-");
+        text(factValues[2], header.overall_type || "-");
+        text(document.querySelector(".fi-impact-analysis p"), report.impact || "");
+
+        var portrait = document.querySelector(".fi-portrait-clean img");
+        var portraitImage = report.visual_asset && report.visual_asset.premium_portrait_image;
+        if (portrait && portraitImage) portrait.src = portraitImage;
+        var date = meta.created_at ? new Date(meta.created_at).toLocaleDateString("de-DE") : new Date().toLocaleDateString("de-DE");
+        text(document.querySelector(".fi-portrait-clean figcaption"), (header.first_name || "FaceInsight") + " · Analyse vom " + date);
+
+        var scores = Array.isArray(report.scores) ? report.scores : [];
+        var avg = scores.length ? scores.reduce(function(sum, item){ return sum + scoreToTen(item.value); }, 0) / scores.length : 0;
+        text(document.querySelector(".fi-attr-level"), "Allgemeiner Analyse-Level: " + (avg ? avg.toFixed(1) : "–") + " / 10");
+
+        var observations = Array.isArray(report.observations) ? report.observations.slice(0, 12) : [];
+        var obsTarget = document.querySelector(".fi-analysis-list");
+        if (obsTarget && observations.length) {
+          obsTarget.innerHTML = observations.map(function(item){
+            var area = item.area || "Analyse";
+            return '<article class="fi-feature-item"><i data-icon="' + escapeHtml(area.charAt(0).toUpperCase()) + '"></i><div><strong>' + escapeHtml(area) + '</strong><p>' + escapeHtml(item.finding || "") + '</p></div></article>';
+          }).join("");
+        }
+
+        var scoreTarget = document.querySelector(".fi-profile-metrics");
+        if (scoreTarget && scores.length) {
+          scoreTarget.innerHTML = scores.slice(0, 10).map(function(item){
+            var val = scoreToTen(item.value);
+            return '<article class="fi-profile-metric"><div><strong>' + escapeHtml(item.label || "Merkmal") + '</strong></div><div class="fi-star-score"><span class="fi-stars" data-score="' + val.toFixed(2) + '"><i></i></span><b>' + val.toFixed(1) + ' / 10</b></div></article>';
+          }).join("");
+        }
+
+        var archetype = report.archetype || {};
+        var archetypeCard = document.querySelector(".fi-archetype-hero");
+        if (archetypeCard) {
+          var aImg = archetypeCard.querySelector("img");
+          if (aImg && archetype.image_url) aImg.src = archetype.image_url;
+          text(archetypeCard.querySelector("strong"), archetype.label || "Archetyp");
+          text(archetypeCard.querySelector("p"), archetype.description || "");
+        }
+
+        var refs = report.reference && Array.isArray(report.reference.items) ? report.reference.items.slice(0, 2) : [];
+        var simCards = document.querySelectorAll(".fi-sim-person");
+        refs.forEach(function(item, index){
+          var card = simCards[index];
+          if (!card) return;
+          var img = card.querySelector("img");
+          if (img && item.image_url) img.src = item.image_url;
+          text(card.querySelector("strong"), item.label || "Referenz");
+          text(card.querySelector("b"), Math.round(Number(item.percent || 0)) + "% Ähnlichkeit");
+          text(card.querySelector("small"), item.note || "");
+        });
+
+        text(document.querySelector(".fi-profile-final p"), report.critical || report.share_profile || "");
+        text(document.querySelector(".fi-profile-final strong"), header.overall_type || "");
+        var footer = document.querySelector(".fi-footer-row p");
+        if (footer) footer.innerHTML = escapeHtml(report.legal_note || "Visuelle Einschätzung anhand von Fotos.").replace(/\n/g, "<br>") + "<br>Test-ID: " + escapeHtml(meta.test_id || ref);
+        renderStars();
+      }
+
+      async function loadStoredReport(){
+        if (!normalizeTid(ref)) return;
+        var url = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
+        if (mode === "guest") url += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+        try {
+          var res = await fetch(url, { credentials: "same-origin" });
+          if (!res.ok) return;
+          var json = await res.json();
+          if (json && json.success && json.report) renderReportData(json.report, json);
+        } catch (_) {}
+      }
+
+      renderStars();
+
+      syncReelLinks();
+      loadStoredReport();
+
+      var printBtn = document.querySelector("[data-print]");
+      if (printBtn) printBtn.addEventListener("click", function(){ window.print(); });
+
+      var nativeBtn = document.querySelector("[data-share-native]");
+      if (nativeBtn) nativeBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        if (navigator.share) {
+          try { await navigator.share({ title: shareText, text: shareText, url: shareUrl }); } catch (_) {}
+        } else if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+        }
+      });
+
+      var waBtn = document.querySelector("[data-share-whatsapp]");
+      if (waBtn) waBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        window.open("https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl), "_blank", "noopener,noreferrer");
+      });
+
+      var fbBtn = document.querySelector("[data-share-facebook]");
+      if (fbBtn) fbBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareUrl), "_blank", "noopener,noreferrer");
+      });
+
+      var printDockBtn = document.querySelector("[data-print-dock]");
+      if (printDockBtn) printDockBtn.addEventListener("click", function(){ window.print(); });
+
+      var shareDockBtn = document.querySelector("[data-share-native-dock]");
+      if (shareDockBtn) shareDockBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        if (navigator.share) {
+          try { await navigator.share({ title: shareText, text: shareText, url: shareUrl }); } catch (_) {}
+        } else if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+        }
+      });
+
+      var waDockBtn = document.querySelector("[data-share-whatsapp-dock]");
+      if (waDockBtn) waDockBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        window.open("https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl), "_blank", "noopener,noreferrer");
+      });
+
+      verifyGuest().then(function(valid){
+        if (mode === "guest" && !valid) {
+          lockGuestView();
+        }
+      });
+
+      if (mode === "owner" && normalizeTid(ref)) {
+        var ownerUrl = "steckbrief-direkt.html?mode=owner&tid=" + encodeURIComponent(ref);
+        if (forcedView === "mobile" || forcedView === "desktop") {
+          ownerUrl += "&view=" + encodeURIComponent(forcedView);
+        }
+        history.replaceState({}, "", ownerUrl);
+      }
+    })();
+  </script>
+</body>
+</html>

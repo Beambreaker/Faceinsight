@@ -1,0 +1,4 @@
+Options -Indexes
+
+Require all denied
+Deny from all

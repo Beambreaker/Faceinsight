@@ -1,0 +1,8 @@
+/api/config.local.php
+/data/tests/
+/live_*.html
+/live_*.js
+/sftp_check.txt
+*.log
+
+/api/config.php

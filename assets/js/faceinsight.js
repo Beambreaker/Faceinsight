@@ -1,0 +1,1046 @@
+﻿(function(){
+  "use strict";
+
+  const form = document.querySelector("[data-fi-form]");
+  if (!form) return;
+
+  const imageKeys = ["front_neutral", "front_smile", "side_profile"];
+  const images = {};
+  const imageQuality = {};
+  const state = {
+    step: 0,
+    activeKey: null,
+    stream: null,
+    loop: null,
+    countdown: null,
+    countdownValue: 0,
+    loadingTimer: null,
+    loadingProgress: 0,
+    lastReport: null,
+    faceDetector: null,
+    faceDetectorReady: false,
+    detecting: false,
+    lastTestId: "",
+    clientTestCode: "",
+    processedImages: {}
+  };
+
+  const $ = (selector, base = document) => base.querySelector(selector);
+  const $$ = (selector, base = document) => Array.from(base.querySelectorAll(selector));
+
+  function setStep(index){
+    stopCamera();
+    state.step = Math.max(0, Math.min(3, index));
+    $$("[data-step]").forEach(step => step.classList.toggle("is-active", Number(step.dataset.step) === state.step));
+    $$("[data-step-indicator]").forEach(item => item.classList.toggle("is-active", Number(item.dataset.stepIndicator) === state.step));
+    const prev = $("[data-prev]");
+    const next = $("[data-next]");
+    if (prev) prev.disabled = state.step === 0 || state.step === 3;
+    if (next) {
+      next.hidden = state.step === 3;
+      next.textContent = state.step === 2 ? "Steckbrief erstellen" : "Weiter";
+      next.disabled = !canContinue();
+    }
+  }
+
+  function value(name){
+    const field = form.elements[name];
+    return field ? String(field.value || "").trim() : "";
+  }
+
+  function checked(name){
+    return form.querySelector(`[name="${name}"]:checked`);
+  }
+
+  function initClientTestCode(){
+    const stored = window.sessionStorage ? window.sessionStorage.getItem("faceinsight_client_test_code") : "";
+    state.clientTestCode = stored || `FI-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    if (window.sessionStorage && !stored) window.sessionStorage.setItem("faceinsight_client_test_code", state.clientTestCode);
+    const hidden = form.elements.client_test_code;
+    const visible = $("[data-client-test-code]");
+    if (hidden) hidden.value = state.clientTestCode;
+    if (visible) visible.textContent = state.clientTestCode;
+  }
+
+  function canContinue(){
+    if (state.step === 0) {
+      return Boolean(checked("storage_mode")) && Boolean(checked("privacy_ack")) && Boolean(checked("similarity_ack")) && Boolean(checked("rights_ack"));
+    }
+    if (state.step === 1) return Boolean(images.front_neutral) && Boolean(images.front_smile);
+    if (state.step === 2) {
+      const age = Number(value("age"));
+      return value("first_name").length > 0 && age >= 13 && age <= 100 && value("makeup_status").length > 0;
+    }
+    return true;
+  }
+
+  function updateNav(){
+    const next = $("[data-next]");
+    if (next && state.step !== 3) next.disabled = !canContinue();
+  }
+
+  function setCameraStatus(text){
+    const node = $("[data-camera-status]");
+    if (node) node.textContent = text;
+  }
+
+  function getFaceDetector(){
+    if (state.faceDetectorReady) return state.faceDetector;
+    state.faceDetectorReady = true;
+    try {
+      if ("FaceDetector" in window) {
+        state.faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 2 });
+      }
+    } catch (_) {
+      state.faceDetector = null;
+    }
+    return state.faceDetector;
+  }
+
+  async function startCamera(key, reuseStream = false){
+    const video = $(`[data-video="${key}"]`);
+    const card = $(`[data-photo-card="${key}"]`);
+    if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setFrameState(key, "red", "Kamera nicht verfuegbar. Bitte Upload verwenden.");
+      return;
+    }
+
+    try {
+      if (reuseStream && state.stream) {
+        clearLiveTarget(true);
+        state.activeKey = key;
+      } else {
+        stopCamera();
+        state.activeKey = key;
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 1600 } },
+          audio: false
+        });
+      }
+      video.srcObject = state.stream;
+      await waitForVideo(video);
+      await video.play();
+      if (card) {
+        card.classList.add("is-live");
+        card.classList.remove("has-image");
+      }
+      const detector = getFaceDetector();
+      const detectorCopy = detector ? "Gesichtserkennung aktiv." : "Live-Gesichtserkennung nicht im Browser verfuegbar, Qualitaet wird lokal geschaetzt.";
+      setFrameState(key, "yellow", key === "front_smile" ? "Laecheln, ruhig halten." : "Gesicht mittig in den Umriss bringen.");
+      setCameraStatus(`Kamera aktiv. ${detectorCopy} Rot, gelb, gruen zeigen die Aufnahmebereitschaft.`);
+      state.loop = window.setInterval(() => {
+        if (!state.detecting) evaluateLiveFrame(key);
+      }, 320);
+    } catch (error) {
+      const message = error && error.name === "NotAllowedError" ? "Kamerazugriff blockiert. Bitte erlauben oder Upload verwenden." : "Kamera konnte nicht gestartet werden.";
+      setFrameState(key, "red", message);
+      stopCamera();
+    }
+  }
+
+  function waitForVideo(video){
+    return new Promise((resolve, reject) => {
+      if (video.readyState >= 2 && video.videoWidth) return resolve();
+      const timer = window.setTimeout(() => reject(new Error("Video timeout")), 7000);
+      const done = () => {
+        window.clearTimeout(timer);
+        video.removeEventListener("loadedmetadata", done);
+        resolve();
+      };
+      video.addEventListener("loadedmetadata", done);
+    });
+  }
+
+  async function evaluateLiveFrame(key){
+    const video = $(`[data-video="${key}"]`);
+    if (!video || !video.videoWidth) return;
+    state.detecting = true;
+    try {
+      const quality = sampleVideoQuality(video);
+      const face = await detectFace(video);
+      const verdict = liveVerdict(key, quality, face, video.videoWidth, video.videoHeight);
+
+      if (verdict.color !== "green") cancelCountdown(key);
+      setFrameState(key, verdict.color, verdict.message);
+      if (verdict.color === "green" && !state.countdown) startCountdown(key);
+    } finally {
+      state.detecting = false;
+    }
+  }
+
+  async function detectFace(video){
+    const detector = getFaceDetector();
+    if (!detector) return { supported: false, count: 0, box: null };
+    try {
+      const faces = await detector.detect(video);
+      const first = faces && faces[0] ? faces[0].boundingBox : null;
+      return { supported: true, count: faces.length, box: first };
+    } catch (_) {
+      return { supported: false, count: 0, box: null };
+    }
+  }
+
+  function liveVerdict(key, quality, face, width, height){
+    if (face.supported) {
+      if (face.count < 1) return { color: "red", message: "Noch kein Gesicht erkannt. Gesicht in den Umriss bringen." };
+      if (face.count > 1) return { color: "red", message: "Bitte nur eine Person im Bild." };
+      const box = face.box;
+      if (box) {
+        const cx = (box.x + box.width / 2) / width;
+        const cy = (box.y + box.height / 2) / height;
+        const size = box.height / height;
+        if (cx < .34 || cx > .66 || cy < .24 || cy > .58) return { color: "yellow", message: "Gesicht mittiger und auf Augenhoehe halten." };
+        if (size < .30) return { color: "yellow", message: "Etwas naeher an die Kamera." };
+        if (size > .72) return { color: "yellow", message: "Etwas weiter weg, Gesicht vollstaendig im Rahmen." };
+      }
+    }
+
+    if (quality.brightness < 55 || quality.brightness > 218 || quality.sharpness < 5) {
+      return { color: "red", message: "Licht oder Schaerfe passt noch nicht. Handy ruhig und gerade halten." };
+    }
+    if (quality.brightness < 78 || quality.brightness > 198 || quality.sharpness < 8 || quality.contrast < 18) {
+      return { color: "yellow", message: "Fast gut. Besseres Frontlicht oder etwas ruhiger halten." };
+    }
+    if (key === "front_neutral" && quality.smileHint > 20) {
+      return { color: "yellow", message: "Bitte fuer dieses Foto neutral bleiben." };
+    }
+    if (key === "front_smile" && quality.smileHint < 9) {
+      return { color: "yellow", message: "Bitte sichtbar laecheln, dann ruhig halten." };
+    }
+    return { color: "green", message: "Sehr gut. Countdown startet." };
+  }
+
+  function sampleVideoQuality(video){
+    const canvas = document.createElement("canvas");
+    canvas.width = 112;
+    canvas.height = 140;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return measureQuality(ctx, canvas.width, canvas.height);
+  }
+
+  function startCountdown(key){
+    state.countdownValue = 3;
+    showCountdown(key, state.countdownValue);
+    state.countdown = window.setInterval(() => {
+      state.countdownValue -= 1;
+      if (state.countdownValue <= 0) {
+        clearCountdownTimer();
+        hideCountdown(key);
+        capture(key, true);
+      } else {
+        showCountdown(key, state.countdownValue);
+      }
+    }, 1000);
+  }
+
+  function cancelCountdown(key){
+    clearCountdownTimer();
+    hideCountdown(key);
+  }
+
+  function clearCountdownTimer(){
+    if (state.countdown) window.clearInterval(state.countdown);
+    state.countdown = null;
+    state.countdownValue = 0;
+  }
+
+  function showCountdown(key, count){
+    const node = $(`[data-countdown="${key}"]`);
+    if (node) {
+      node.textContent = String(count);
+      node.hidden = false;
+    }
+  }
+
+  function hideCountdown(key){
+    const node = $(`[data-countdown="${key}"]`);
+    if (node) node.hidden = true;
+  }
+
+  function stopCamera(){
+    clearLiveTarget(false);
+  }
+
+  function clearLiveTarget(keepStream){
+    if (state.loop) window.clearInterval(state.loop);
+    state.loop = null;
+    clearCountdownTimer();
+    if (state.activeKey) hideCountdown(state.activeKey);
+    if (!keepStream && state.stream) {
+      state.stream.getTracks().forEach(track => track.stop());
+      state.stream = null;
+    }
+    if (state.activeKey) {
+      const video = $(`[data-video="${state.activeKey}"]`);
+      const card = $(`[data-photo-card="${state.activeKey}"]`);
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+      }
+      if (card) card.classList.remove("is-live");
+    }
+    state.activeKey = null;
+    state.detecting = false;
+  }
+
+  function capture(key, automatic){
+    const video = $(`[data-video="${key}"]`);
+    if (!video || !video.videoWidth) {
+      setFrameState(key, "red", "Kein Kamerabild verfuegbar.");
+      return;
+    }
+    const canvas = $(`[data-canvas="${key}"]`) || document.createElement("canvas");
+    const data = drawNormalized(video, canvas, true);
+    data.quality.source = automatic ? "auto_countdown" : "manual";
+    stopCamera();
+    saveImage(key, data.url, data.quality);
+  }
+
+  async function handleUpload(input){
+    const key = input.dataset.upload;
+    const file = input.files && input.files[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    try {
+      const img = await loadImage(await fileToDataUrl(file));
+      const canvas = $(`[data-canvas="${key}"]`) || document.createElement("canvas");
+      const data = drawNormalized(img, canvas, false);
+      data.quality.source = "upload";
+      saveImage(key, data.url, data.quality);
+    } catch (_) {
+      setFrameState(key, "red", "Bild konnte nicht gelesen werden.");
+    }
+  }
+
+  function drawNormalized(source, canvas, mirror){
+    const width = 960;
+    const height = 1200;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    ctx.fillStyle = "#f7fafc";
+    ctx.fillRect(0, 0, width, height);
+    const sw = source.videoWidth || source.naturalWidth || source.width;
+    const sh = source.videoHeight || source.naturalHeight || source.height;
+    const rect = containRect(sw, sh, width, height);
+    ctx.save();
+    if (mirror) {
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(source, 0, 0, sw, sh, rect.x, rect.y, rect.width, rect.height);
+    ctx.restore();
+    return { url: canvas.toDataURL("image/jpeg", 0.9), quality: measureQuality(ctx, width, height) };
+  }
+
+  function containRect(sw, sh, width, height){
+    const pad = 26;
+    const maxW = width - pad * 2;
+    const maxH = height - pad * 2;
+    const sourceRatio = sw / sh;
+    let outW = maxW;
+    let outH = outW / sourceRatio;
+    if (outH > maxH) {
+      outH = maxH;
+      outW = outH * sourceRatio;
+    }
+    return { x: (width - outW) / 2, y: (height - outH) / 2, width: outW, height: outH };
+  }
+
+  function measureQuality(ctx, width, height){
+    const sample = document.createElement("canvas");
+    sample.width = 112;
+    sample.height = 140;
+    const sctx = sample.getContext("2d", { willReadFrequently: true });
+    sctx.drawImage(ctx.canvas || ctx, 0, 0, sample.width, sample.height);
+    const data = sctx.getImageData(0, 0, sample.width, sample.height).data;
+    let brightness = 0;
+    let contrast = 0;
+    let sharpness = 0;
+    let smileHint = 0;
+    let mouthSamples = 0;
+    let count = 0;
+    for (let y = 1; y < sample.height - 1; y += 2) {
+      for (let x = 1; x < sample.width - 1; x += 2) {
+        const i = (y * sample.width + x) * 4;
+        const l = luminance(data, i);
+        const lx = luminance(data, (y * sample.width + x + 1) * 4);
+        const ly = luminance(data, ((y + 1) * sample.width + x) * 4);
+        brightness += l;
+        contrast += Math.abs(l - 128);
+        sharpness += Math.abs(l - lx) + Math.abs(l - ly);
+        if (y > sample.height * .54 && y < sample.height * .78 && x > sample.width * .23 && x < sample.width * .77) {
+          smileHint += Math.abs(l - 132) + (l > 165 ? 10 : 0);
+          mouthSamples++;
+        }
+        count++;
+      }
+    }
+    brightness = Math.round(brightness / Math.max(1, count));
+    contrast = Math.round(contrast / Math.max(1, count));
+    sharpness = Number((sharpness / Math.max(1, count)).toFixed(1));
+    smileHint = Number((smileHint / Math.max(1, mouthSamples) / 3).toFixed(1));
+    const issues = [];
+    if (brightness < 70) issues.push("etwas dunkel");
+    if (brightness > 205) issues.push("sehr hell");
+    if (sharpness < 8) issues.push("moeglich unscharf");
+    if (contrast < 20) issues.push("wenig Kontrast");
+    return { brightness, contrast, sharpness, smileHint, issues };
+  }
+
+  function luminance(data, index){
+    return data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+  }
+
+  function saveImage(key, url, quality){
+    images[key] = url;
+    imageQuality[key] = quality;
+    const preview = $(`[data-preview="${key}"]`);
+    const card = $(`[data-photo-card="${key}"]`);
+    if (preview) preview.src = url;
+    if (card) {
+      card.classList.add("has-image");
+      card.classList.remove("is-live");
+    }
+    const message = quality.issues && quality.issues.length ? `Gespeichert. Hinweis: ${quality.issues.join(", ")}.` : "Foto gespeichert. Qualitaet wirkt gut.";
+    setFrameState(key, quality.issues && quality.issues.length ? "yellow" : "green", message);
+    updateNav();
+
+    if (key === "front_neutral" && !images.front_smile) {
+      setCameraStatus("Neutralfoto gespeichert. Jetzt startet automatisch die Laecheln-Kamera.");
+      window.setTimeout(() => {
+        startCamera("front_smile", true)
+          .catch(() => startCamera("front_smile"))
+          .catch(() => {
+            setFrameState("front_smile", "yellow", "Laecheln-Kamera konnte nicht automatisch starten. Bitte auf Kamera tippen oder Upload nutzen.");
+          });
+      }, 420);
+    }
+
+    if (key === "front_smile") {
+      setCameraStatus("Perfekt. Beide Fotos sind bereit. Weiter mit Schritt 3.");
+    }
+  }
+
+  function setFrameState(key, color, message){
+    const card = $(`[data-photo-card="${key}"]`);
+    const quality = $(`[data-quality="${key}"]`);
+    const live = $(`[data-live-state="${key}"]`);
+    if (card) {
+      card.classList.remove("is-red", "is-yellow", "is-green");
+      card.classList.add(`is-${color}`);
+    }
+    if (quality) quality.textContent = message || "";
+    if (live) live.textContent = message || "";
+  }
+
+  function fileToDataUrl(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(src){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  function payload(){
+    const selectedMode = value("report_mode");
+    const effectiveMode = selectedMode === "pair" ? "pair" : "premium";
+    return {
+      mode: effectiveMode,
+      pair_base_test_id: value("pair_base_test_id"),
+      client_test_code: state.clientTestCode || value("client_test_code"),
+      consent: {
+        privacy_accepted: Boolean(checked("privacy_ack")),
+        similarity_accepted: Boolean(checked("similarity_ack")),
+        rights_confirmed: Boolean(checked("rights_ack")),
+        storage_mode: checked("storage_mode") ? checked("storage_mode").value : ""
+      },
+      user: {
+        first_name: value("first_name"),
+        age: Number(value("age")),
+        self_described_gender: value("self_described_gender"),
+        makeup_status: value("makeup_status")
+      },
+      images,
+      processed_images: state.processedImages,
+      image_quality: imageQuality,
+      source: { app: "faceinsight-standalone", version: "1.3.0" }
+    };
+  }
+
+  async function callStage(stage, data){
+    const response = await fetch(`api/analyze.php?stage=${encodeURIComponent(stage)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, stage })
+    });
+    const json = await response.json();
+    if (!response.ok || !json || json.success !== true) {
+      throw new Error((json && (json.message || (json.errors || []).join(", "))) || `${stage} fehlgeschlagen`);
+    }
+    if (!json.stage && json.report) {
+      return {
+        success: true,
+        stage: "legacy_report",
+        data: { render_payload: { direct_profile_fields: {
+          mode: json.mode || "fallback",
+          test_id: json.test_id || "",
+          expires_at: json.expires_at || "",
+          report: json.report,
+          pair_report: json.pair_report || null
+        } } },
+        warnings: json.message ? [json.message] : []
+      };
+    }
+    return json;
+  }
+
+  function applyProcessedImages(processed, basePayload){
+    const slotMap = { neutral: "front_neutral", smile: "front_smile", side_profile: "side_profile" };
+    const items = processed && processed.data && Array.isArray(processed.data.processed_images)
+      ? processed.data.processed_images
+      : [];
+    state.processedImages = state.processedImages || {};
+    basePayload.processed_images = basePayload.processed_images || {};
+    items.forEach(item => {
+      const key = slotMap[item.slot] || item.slot;
+      const image = typeof item.output_data_url === "string" ? item.output_data_url : "";
+      if (image && /^data:image\//.test(image)) {
+        state.processedImages[key] = image;
+        basePayload.processed_images[key] = image;
+      }
+    });
+  }
+
+  function startLoading(){
+    const loading = $("[data-loading]");
+    const report = $("[data-report]");
+    const error = $("[data-report-error]");
+    if (report) report.hidden = true;
+    if (error) error.hidden = true;
+    if (loading) loading.hidden = false;
+    state.loadingProgress = 0;
+    setLoading(8, "Bilder werden vorbereitet.");
+    window.clearInterval(state.loadingTimer);
+    state.loadingTimer = window.setInterval(() => {
+      const cap = state.loadingProgress < 45 ? 45 : state.loadingProgress < 78 ? 78 : 93;
+      if (state.loadingProgress < cap) setLoading(state.loadingProgress + 3);
+    }, 280);
+  }
+
+  function setLoading(value, copy){
+    state.loadingProgress = Math.max(state.loadingProgress, Math.min(100, Math.round(value)));
+    const bar = $("[data-loading-bar]");
+    const percent = $("[data-loading-percent]");
+    const copyNode = $("[data-loading-copy]");
+    if (bar) bar.style.width = `${state.loadingProgress}%`;
+    if (percent) percent.textContent = `${state.loadingProgress}%`;
+    if (copyNode && copy) copyNode.textContent = copy;
+  }
+
+  function finishLoading(){
+    window.clearInterval(state.loadingTimer);
+    setLoading(100, "Steckbrief fertig.");
+    window.setTimeout(() => {
+      const loading = $("[data-loading]");
+      const report = $("[data-report]");
+      if (loading) loading.hidden = true;
+      if (report) report.hidden = false;
+    }, 180);
+  }
+
+  function directReportUrl(testId){
+    const tid = testId || state.lastTestId || state.clientTestCode;
+    return `steckbrief-direkt.html?mode=owner&tid=${encodeURIComponent(tid)}`;
+  }
+
+  async function createReport(){
+    setStep(3);
+    startLoading();
+    let data = null;
+    const errorBox = $("[data-report-error]");
+    if (errorBox) {
+      errorBox.hidden = true;
+      errorBox.textContent = "";
+    }
+    try {
+      const basePayload = payload();
+      setLoading(24, "Precheck laeuft.");
+      const precheck = await callStage("precheck", basePayload);
+      if (precheck.stage === "legacy_report") {
+        data = precheck;
+        setLoading(86, "Steckbrief wird zusammengestellt.");
+        throw { legacyReady: true };
+      }
+      data = precheck;
+      const preData = precheck.data || {};
+      if (!(preData.global && preData.global.can_continue)) {
+        const guidance = [];
+        const slotToFrame = slot => slot === "neutral" ? "front_neutral" : slot === "smile" ? "front_smile" : slot;
+        (preData.images || []).forEach(item => {
+          if (item.slot && Array.isArray(item.guidance) && item.guidance.length) {
+            setFrameState(slotToFrame(item.slot), "yellow", item.guidance[0]);
+            guidance.push(`${item.slot}: ${item.guidance[0]}`);
+          }
+        });
+        throw new Error(guidance.join(" | ") || "Precheck nicht bestanden. Bitte Bilder neu aufnehmen.");
+      }
+      setLoading(46, "Bilder werden hochwertig vorbereitet.");
+      const processed = await callStage("process", basePayload);
+      applyProcessedImages(processed, basePayload);
+      setLoading(66, "Gesichtsanalyse wird geprüft.");
+      const analyzed = await callStage("analyze", basePayload);
+      if (!(analyzed && analyzed.data && analyzed.data.can_generate_report)) {
+        const reasons = analyzed && analyzed.data && Array.isArray(analyzed.data.blocking_reasons)
+          ? analyzed.data.blocking_reasons
+          : [];
+        const message = reasons.length
+          ? `Analyse blockiert: ${reasons.join(", ")}`
+          : "Analyse blockiert. Bitte Fotos neu aufnehmen.";
+        throw new Error(message);
+      }
+      basePayload.analysis_result = analyzed.data || {};
+      setLoading(78, "Steckbrief wird erstellt.");
+      data = await callStage("report", basePayload);
+    } catch (error) {
+      if (error && error.legacyReady) {
+        // Partial live deployments can briefly have new JS talking to the old API.
+      } else if (errorBox) {
+        errorBox.hidden = false;
+        errorBox.textContent = error && error.message ? error.message : "Analyse-API nicht erreichbar oder fehlerhaft.";
+      }
+      data = data || null;
+    }
+
+    if (data && data.retry) {
+      window.clearInterval(state.loadingTimer);
+      setStep(1);
+      const message = data.message || "Die KI konnte die Bilder nicht sicher pruefen. Bitte neu aufnehmen.";
+      setCameraStatus(message);
+      if (errorBox) {
+        errorBox.hidden = false;
+        errorBox.textContent = message;
+      }
+      if (Array.isArray(data.errors)) {
+        data.errors.forEach(error => {
+          if (String(error).includes("smile")) setFrameState("front_smile", "yellow", message);
+          if (String(error).includes("neutral") || String(error).includes("face")) setFrameState("front_neutral", "yellow", message);
+        });
+      }
+      return;
+    }
+
+    if (!data || !data.success) {
+      if (errorBox && !errorBox.textContent) {
+        errorBox.hidden = false;
+        errorBox.textContent = (data && data.message) ? data.message : "Analyse-API nicht erreichbar oder fehlerhaft.";
+      }
+      const fallback = fallbackReport();
+      state.lastReport = fallback;
+      renderReport(fallback);
+      finishLoading();
+      return;
+    }
+
+    const stageReport = data && data.data && data.data.render_payload ? data.data.render_payload : {};
+    const directPayload = stageReport.direct_profile_fields || {};
+    const report = directPayload.report || (data && data.success && data.report ? data.report : fallbackReport());
+    if (directPayload.test_id || (data && data.test_id)) {
+      state.lastTestId = directPayload.test_id || data.test_id;
+      report.test_id = state.lastTestId;
+    }
+    if (directPayload.expires_at) report.expires_at = directPayload.expires_at;
+    if (data && data.warnings && data.warnings.length) report.system_note = data.warnings.join(" | ");
+    state.lastReport = report;
+    if (new URLSearchParams(window.location.search).get("inline") !== "1") {
+      window.location.href = directReportUrl(report.test_id || state.lastTestId);
+      return;
+    }
+    setLoading(92, "Steckbrief-Maske wird gesetzt.");
+    renderReport(report);
+    finishLoading();
+  }
+
+  function fallbackReport(){
+    const age = Number(value("age")) || 35;
+    return {
+      report_header: {
+        first_name: value("first_name") || "FaceInsight",
+        actual_age: age,
+        visual_age_estimate: "KI-Schätzung nicht sicher",
+        age_alignment_note: "Kein optisches Alter aus der Eingabe abgeleitet; bitte Analyse mit klaren Fotos erneut starten.",
+        overall_type: "klar, präsent, modern"
+      },
+      impact: "Auf andere wirkt das Gesicht klar, aufmerksam und freundlich. Das natürliche Lächeln macht den Eindruck wärmer, offener und zugänglicher, während die frontale Haltung Ruhe und Verlässlichkeit vermittelt.",
+      scores: [
+        metric("Attraktivität", 8.2, "harmonischer Gesamteindruck"),
+        metric("Vertrauenswirkung", 8.4, "ruhige, klare Wirkung"),
+        metric("Präsenz", 8.6, "Blick und Kopfhaltung prägen den Eindruck"),
+        metric("Harmonie", 8.0, "stimmige Proportionen"),
+        metric("Markanz", 7.8, "gut erinnerbare Linien"),
+        metric("Symmetrie", 8.1, "Frontansicht wirkt ausgeglichen"),
+        metric("Ausdruck", 8.3, "Lächeln verbessert Nahbarkeit"),
+        metric("Hautbild-Klarheit", 7.9, "sichtbare Textur berücksichtigt"),
+        metric("Zahnlinien-Symmetrie", 7.8, "nur bei sichtbarem Lächeln")
+      ],
+      observations: [
+        observation("Gesichtsform", "Harmonisch-ovale Grundwirkung mit klaren Konturen."),
+        observation("Stirn & Haaransatz", "Ausgewogene Stirnpartie, ruhige Linienführung."),
+        observation("Augenpartie", "Wacher, direkter Blick mit präsentem Ausdruck."),
+        observation("Nase", "Proportioniert und stimmig zur Gesichtsmitte."),
+        observation("Falten & Linien", "Sichtbare Linien werden realistisch berücksichtigt und nicht weichgezeichnet."),
+        observation("Hautqualität", "Hautbild wirkt im Foto gleichmäßig; Licht und Schärfe beeinflussen die Bewertung."),
+        observation("Erkannter Hauttyp", "Optisch eher normal bis leicht trocken; keine medizinische Hautdiagnose."),
+        observation("Haare", "Haarlinie, Dichte und Kontur werden altersklassengerecht eingeordnet."),
+        observation("Bart", "Bartstruktur wird nur bewertet, wenn sie sichtbar ist, und nicht in die Geschlechtsformulierung übernommen."),
+        observation("Ohren", "Ohren-Proportion und seitliche Sichtbarkeit werden vorsichtig eingeschätzt."),
+        observation("Zähne", "Zahnhelligkeit, sichtbare Frontlinie und Lücken werden nur bei ausreichender Sichtbarkeit benannt."),
+        observation("Lippen", "Neutral kontrolliert, lächelnd deutlich wärmer."),
+        observation("Kieferlinie", "Definierte Kontur mit guter Stabilitaet."),
+        observation("Symmetrie", "Frontale Wirkung erscheint insgesamt ausgeglichen."),
+        observation("Gesamtwirkung", "Klar, seriös und freundlich bei sichtbarem Lächeln.")
+      ],
+      archetype: { label: "Der präsente Beobachter", icon: "star", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Edouard_Manet_-_The_Muse.jpg?width=180", description: "Ruhige Aufmerksamkeit, kontrollierte Ausstrahlung und klare Wirkungslinien." },
+      reference: {
+        disclaimer: "Modellbasierte visuelle Ähnlichkeit, keine Identifikation.",
+        items: [
+          { label: "Ernest Hemingway", era: "20. Jahrhundert", status: "historisch", percent: 64, note: "Ähnliche Wirkung in Blickruhe, Markanz und kontrollierter Präsenz.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Ernest_Hemingway_1923_passport_photo.jpg?width=180" },
+          { label: "Humphrey Bogart", era: "klassisches Hollywood", status: "historisch", percent: 58, note: "Vergleichbare ruhige Ausstrahlung und kantige Gesamterscheinung.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180" }
+        ]
+      },
+      critical: "Ein hochwertiger, klar strukturierter Premium-Look mit starker visueller Fuehrung und sympathischer Praesenz.",
+      tips: [
+        "Weiches Licht von vorne lässt Hautbild und Augenpartie hochwertiger wirken.",
+        "Kamera auf Augenhöhe halten, damit Proportionen nicht verzerrt werden.",
+        "Ein leichtes, echtes Lächeln steigert Sympathie ohne Präsenzverlust."
+      ],
+      visual_asset: { premium_portrait_image: "" },
+      share_profile: "Klar, präsent und modern mit warmer Lächelwirkung.",
+      legal_note: "Hinweis: visuelle Einschätzung anhand von Fotos. Ähnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse."
+    };
+  }
+
+  function metric(label, value, note){ return { label, value, note }; }
+  function observation(area, finding){ return { area, finding }; }
+
+  function renderReport(report){
+    const head = report.report_header || {};
+    const scoreItems = report.scores || [];
+    const averageScore = scoreItems.length
+      ? Math.round(scoreItems.reduce((sum, item) => sum + scoreValue(item), 0) / scoreItems.length)
+      : 87;
+    const visualAge = formatVisualAge(head.visual_age_estimate, head.actual_age || value("age"));
+    text("[data-report-name]", head.first_name || value("first_name") || "FaceInsight");
+    text("[data-report-age-short]", head.actual_age || value("age") || "-");
+    text("[data-report-visual-age]", visualAge);
+    text("[data-report-date]", new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }));
+    text("[data-report-overall-score]", averageScore);
+    text("[data-report-type]", head.overall_type || "-");
+    text("[data-report-impact]", report.impact || "");
+    text("[data-report-critical]", report.critical || "");
+    text("[data-report-legal]", report.legal_note || "Visuelle Einschaetzung anhand von Fotos, keine Diagnose.");
+
+    const processed = state.processedImages || {};
+    const portrait = $("[data-report-blueprint]");
+    if (portrait) portrait.src = (report.visual_asset && report.visual_asset.premium_portrait_image) || processed.front_smile || processed.front_neutral || images.front_smile || images.front_neutral || "";
+    const miniNeutral = $("[data-mini-neutral]");
+    const miniSmile = $("[data-mini-smile]");
+    if (miniNeutral) miniNeutral.src = processed.front_neutral || images.front_neutral || (report.visual_asset && report.visual_asset.premium_portrait_image) || "";
+    if (miniSmile) miniSmile.src = processed.front_smile || images.front_smile || (report.visual_asset && report.visual_asset.premium_portrait_image) || "";
+
+    renderObservations(report.observations || []);
+    renderScores(scoreItems);
+    renderArchetype(report.archetype || {});
+    renderReference(report.reference || {});
+    renderTips(report.tips || []);
+    renderTags(report);
+    text("[data-report-test-id]", report.test_id || state.lastTestId || state.clientTestCode || "-");
+  }
+
+  function formatVisualAge(estimate, actualAge){
+    if (estimate) {
+      const clean = String(estimate).replace(/\s+/g, " ").trim();
+      if (/nicht sicher|unsicher|unbekannt|keine/i.test(clean)) return clean;
+      return /jahr/i.test(clean) ? clean : `${clean} Jahre`;
+    }
+    return "KI-Schätzung nicht sicher";
+  }
+
+  function renderScores(items){
+    const target = $("[data-report-scores]");
+    if (!target) return;
+    const fallback = [
+      metric("Symmetrie", 92, "ausgewogen"),
+      metric("Attraktivitaet", 85, "praesent"),
+      metric("Ausdrucksstaerke", 88, "stark"),
+      metric("Vertrauenswirkung", 84, "ruhig"),
+      metric("Praesenz", 88, "direkt"),
+      metric("Harmonie", 90, "stimmig"),
+      metric("Charisma", 87, "markant")
+    ];
+    const rows = (items && items.length ? items : fallback).slice(0, 9);
+    target.innerHTML = rows.map(item => {
+      const ten = scoreTen(item);
+      const quarter = Math.round(ten * 4) / 4;
+      const fill = Math.max(0, Math.min(100, (quarter / 10) * 100));
+      return `<article class="fi-profile-metric"><div><strong>${escapeHtml(item.label)}</strong></div><div class="fi-star-score"><span class="fi-stars" style="--fill:${fill.toFixed(2)}%"><i></i></span><b>${ten.toFixed(1)} / 10</b></div></article>`;
+    }).join("");
+  }
+
+  function scoreValue(item){
+    const raw = Number(item && item.value) || Number(item && item.score) || 1;
+    return Math.max(1, Math.min(100, Math.round(raw <= 10 ? raw * 10 : raw)));
+  }
+
+  function scoreTen(item){
+    const raw = Number(item && item.value) || Number(item && item.score) || 1;
+    const value = raw <= 10 ? raw : raw / 10;
+    return Math.max(1, Math.min(10, value));
+  }
+
+  function renderObservations(items){
+    const target = $("[data-report-observations]");
+    if (!target) return;
+    const rows = items && items.length ? items : [
+      observation("Gesichtsform", "Harmonische Grundwirkung mit klaren Proportionen."),
+      observation("Stirn & Haaransatz", "Ausgewogene Stirnpartie mit ruhiger Linienführung."),
+      observation("Augenpartie", "Klarer Blick mit präsenter Wirkung."),
+      observation("Nase", "Proportioniert und stimmig zur Gesichtsmitte."),
+      observation("Falten & Linien", "Sichtbare Linien werden realistisch berücksichtigt."),
+      observation("Hautqualität", "Hautbild wirkt gleichmäßig; Licht und Schärfe beeinflussen die Bewertung."),
+      observation("Haare", "Haarlinie und Dichte wirken altersentsprechend stimmig."),
+      observation("Bart", "Bartstruktur unterstützt die Untergesichtsform klar und harmonisch."),
+      observation("Ohren", "Ohren sind proportional zur Gesichtsbreite ausgerichtet."),
+      observation("Zähne", "Im Lächeln zeigt sich eine ruhige Frontausrichtung."),
+      observation("Erkannter Hauttyp", "Optisch eher normal bis leicht trocken; keine medizinische Diagnose."),
+      observation("Lippen", "Neutral kontrolliert, lächelnd deutlich wärmer.")
+    ];
+    const icons = ["face", "hair", "eye", "nose", "lips", "jaw", "scale", "spark", "hair", "jaw", "face", "spark"];
+    target.innerHTML = rows.slice(0,10).map((item, index) => {
+      return `<article class="fi-feature-item"><i data-icon="${escapeHtml(iconGlyph(icons[index]))}"></i><div><strong>${escapeHtml(item.area)}</strong><p>${escapeHtml(item.finding)}</p></div></article>`;
+    }).join("");
+  }
+
+  function iconGlyph(name){
+    const map = { face: "O", hair: "~", eye: "o", nose: "^", lips: "=", jaw: "U", scale: "+", spark: "*" };
+    return map[name] || "*";
+  }
+
+  function renderArchetype(item){
+    const target = $("[data-report-archetype]");
+    if (!target) return;
+    const label = item.label || "Der praesente Beobachter";
+    const copy = item.description || "Klarer Auftritt, ruhige Mimik und eine moderne, vertrauensvolle Wirkung.";
+    const image = item.image_url || "assets/img/archetype-modern.jpg";
+    target.innerHTML = [
+      '<article class="fi-archetype-hero">',
+      `<img alt="${escapeHtml(label)}" src="${escapeHtml(image)}">`,
+      '<div>',
+      `<strong>${escapeHtml(label)}</strong>`,
+      `<small>Wirkungsprofil</small>`,
+      `<p>${escapeHtml(copy)}</p>`,
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function archetypeGlyph(icon){
+    const map = { observer: "O", star: "*", strategist: "^", harmonizer: "+", classic: "I", creator: "~", leader: "A" };
+    return map[icon || "observer"] || "*";
+  }
+
+  function renderReference(item){
+    const target = $("[data-report-reference]");
+    if (!target) return;
+    const list = Array.isArray(item && item.items) ? item.items : [
+      item && item.label ? item : null,
+      { label: "Humphrey Bogart", era: "klassisches Hollywood", status: "historisch", percent: 58, note: "Vergleichbare ruhige Ausstrahlung und kantige Gesamterscheinung.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180" }
+    ].filter(Boolean);
+    const rows = (list.length ? list : [
+      { label: "Ernest Hemingway", era: "20. Jahrhundert", status: "historisch", percent: 64, note: "Ähnliche Wirkung in Blickruhe, Markanz und kontrollierter Präsenz.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Ernest_Hemingway_1923_passport_photo.jpg?width=180" },
+      { label: "Humphrey Bogart", era: "klassisches Hollywood", status: "historisch", percent: 58, note: "Vergleichbare ruhige Ausstrahlung und kantige Gesamterscheinung.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180" }
+    ]).slice(0, 2);
+    target.innerHTML = rows.map(entry => {
+      const label = entry.label || "Stilreferenz";
+      const note = entry.note || "Visuelle Wirkungslinie ohne identifizierenden Abgleich.";
+      const meta = [entry.status, entry.era].filter(Boolean).join(" · ");
+      const percent = Math.max(1, Math.min(99, Number(entry.percent) || 76));
+      const wikiByName = {
+        "Ernest Hemingway": "https://commons.wikimedia.org/wiki/Special:FilePath/Ernest_Hemingway_1923_passport_photo.jpg?width=180",
+        "Humphrey Bogart": "https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180",
+        "Grace Kelly": "https://commons.wikimedia.org/wiki/Special:FilePath/Grace_Kelly_1955.jpg?width=180",
+        "Audrey Hepburn": "https://commons.wikimedia.org/wiki/Special:FilePath/Audrey_Hepburn_1959.jpg?width=180"
+      };
+      const imageUrl = entry.image_url || wikiByName[label] || "";
+      const image = imageUrl ? `<img alt="${escapeHtml(label)}" src="${escapeHtml(imageUrl)}">` : '<span class="fi-reference-fallback"></span>';
+      return `<article class="fi-sim-person">${image}<div><strong>${escapeHtml(label)}</strong><small>${escapeHtml(meta || "visuelle Referenz")}</small><b>${percent}% Ähnlichkeit</b><small>${escapeHtml(note)}</small></div></article>`;
+    }).join("");
+  }
+
+  function renderTips(items){
+    const target = $("[data-report-tips]");
+    if (!target) return;
+    target.innerHTML = items.slice(0,3).map(item => `<li>${escapeHtml(item)}</li>`).join("");
+  }
+
+  function renderTags(report){
+    const target = $("[data-report-tags]");
+    if (!target) return;
+    const tipTags = Array.isArray(report.tips) ? report.tips.filter(Boolean) : [];
+    const scores = Array.isArray(report.scores) ? report.scores : [];
+    const labels = scores.slice(0, 3).map(item => item.label).filter(Boolean);
+    const tags = tipTags.length ? tipTags : (labels.length ? labels : ["Entschlossen", "Charismatisch", "Selbstbewusst"]);
+    target.innerHTML = tags.slice(0, 3).map(tag => `<span>${escapeHtml(tag)}</span>`).join("");
+  }
+
+  function text(selector, content){
+    $$(selector).forEach(node => { node.textContent = content || ""; });
+  }
+
+  function escapeHtml(value){
+    return String(value || "").replace(/[&<>"']/g, char => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[char]));
+  }
+
+  function shareText(){
+    if (!state.lastReport) return "Ich habe meinen FaceInsight Premium-Steckbrief erstellt.";
+    const head = state.lastReport.report_header || {};
+    return `FaceInsight Premium-Steckbrief${head.first_name ? ` von ${head.first_name}` : ""}\n${state.lastReport.share_profile || state.lastReport.impact || ""}`;
+  }
+
+  function demoPortrait(){
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 560">',
+      '<defs>',
+      '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10375e"/><stop offset="1" stop-color="#061528"/></linearGradient>',
+      '<linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0cc85"/><stop offset=".55" stop-color="#b97932"/><stop offset="1" stop-color="#5a2f18"/></linearGradient>',
+      '<linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7d1ad"/><stop offset="1" stop-color="#c88662"/></linearGradient>',
+      '</defs>',
+      '<rect width="420" height="560" fill="url(#bg)"/>',
+      '<circle cx="210" cy="142" r="122" fill="url(#hair)" opacity=".96"/>',
+      '<path d="M83 545c12-128 77-190 127-190s115 62 127 190z" fill="#ece8df"/>',
+      '<path d="M108 245c-10-94 32-166 102-166s112 72 102 166c-8 82-49 132-102 132s-94-50-102-132z" fill="url(#skin)"/>',
+      '<path d="M96 189c25-91 92-136 154-101 38 22 67 67 72 126-58-42-132-54-226-25z" fill="url(#hair)"/>',
+      '<path d="M108 206c-19 70-13 137 26 203-64-43-87-137-55-218z" fill="url(#hair)" opacity=".94"/>',
+      '<path d="M307 200c24 83 6 161-42 211 23-68 28-135 8-202z" fill="url(#hair)" opacity=".94"/>',
+      '<circle cx="169" cy="238" r="8" fill="#172338"/><circle cx="248" cy="238" r="8" fill="#172338"/>',
+      '<path d="M148 218c19-13 42-11 55 0" fill="none" stroke="#503422" stroke-width="8" stroke-linecap="round"/>',
+      '<path d="M227 218c18-12 41-11 54 1" fill="none" stroke="#503422" stroke-width="8" stroke-linecap="round"/>',
+      '<path d="M206 244c-5 34-15 54-28 66 17 8 38 9 58 0-14-13-23-33-30-66z" fill="#d99578" opacity=".62"/>',
+      '<path d="M168 320c28 30 59 30 87 0" fill="none" stroke="#8b3e33" stroke-width="10" stroke-linecap="round"/>',
+      '<path d="M172 315c24 12 53 12 78 0" fill="none" stroke="#fff4e6" stroke-width="7" stroke-linecap="round"/>',
+      '<path d="M109 544c4-66 46-112 101-112s96 46 101 112z" fill="#f4efe5"/>',
+      '</svg>'
+    ].join("");
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  }
+
+  function demoReport(){
+    images.front_smile = demoPortrait();
+    const report = {
+      test_id: state.clientTestCode,
+      report_header: {
+        first_name: "Sven",
+        actual_age: 29,
+        visual_age_estimate: "27-31",
+        overall_type: "klar, präsent, modern"
+      },
+      impact: "Auf andere wirkt das Gesicht klar, aufmerksam und freundlich. Das natürliche Lächeln macht den Eindruck wärmer, offener und zugänglicher, während die frontale Haltung Ruhe und Verlässlichkeit vermittelt.",
+      scores: [
+        metric("Attraktivität", 8.2, "harmonische Gesamtwirkung"),
+        metric("Vertrauenswirkung", 8.4, "ruhige, klare Ausstrahlung"),
+        metric("Präsenz", 8.6, "direkter Blick und klare Linien"),
+        metric("Harmonie", 8.0, "ausgewogene Proportionen"),
+        metric("Markanz", 7.8, "wiedererkennbare Konturen"),
+        metric("Symmetrie", 8.1, "ausgeglichene Frontansicht"),
+        metric("Ausdruck", 8.3, "natürliches Lächeln"),
+        metric("Hautbild-Klarheit", 7.9, "sichtbare Textur berücksichtigt"),
+        metric("Zahnlinien-Symmetrie", 7.8, "nur bei sichtbarem Lächeln")
+      ],
+      observations: [
+        observation("Gesichtsform", "Harmonisch-ovale Grundwirkung mit klaren Konturen."),
+        observation("Stirn & Haaransatz", "Ausgewogene Stirnpartie, ruhige Linienführung."),
+        observation("Augenpartie", "Wacher, direkter Blick mit präsenter Ausdruckskraft."),
+        observation("Nase", "Proportioniert und stimmig zur Gesichtsmitte."),
+        observation("Falten & Linien", "Sichtbare Linien werden realistisch berücksichtigt und nicht weichgezeichnet."),
+        observation("Hautqualität", "Hautbild wirkt im Foto gleichmäßig; Licht und Schärfe beeinflussen die Bewertung."),
+        observation("Erkannter Hauttyp", "Optisch eher normal bis leicht trocken; keine medizinische Diagnose."),
+        observation("Haare", "Haarlinie, Dichte und Kontur werden altersklassengerecht eingeordnet."),
+        observation("Bart", "Bartstruktur wird nur bewertet, wenn sie sichtbar ist."),
+        observation("Ohren", "Ohren-Proportion und seitliche Sichtbarkeit werden vorsichtig eingeschätzt."),
+        observation("Zähne", "Zahnhelligkeit, sichtbare Frontlinie und Lücken werden nur bei ausreichender Sichtbarkeit benannt."),
+        observation("Lippen", "Neutral kontrolliert, lächelnd deutlich wärmer.")
+      ],
+      archetype: { label: "Der präsente Beobachter", secondary: "Moderne Präsenz", icon: "star", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Edouard_Manet_-_The_Muse.jpg?width=180", description: "Ruhige Aufmerksamkeit, kontrollierte Ausstrahlung und klare Wirkungslinien." },
+      reference: {
+        disclaimer: "Modellbasierte visuelle Ähnlichkeit, keine Identifikation.",
+        items: [
+          { label: "Ernest Hemingway", era: "20. Jahrhundert", status: "historisch", percent: 64, note: "Ähnliche Wirkung in Blickruhe, Markanz und kontrollierter Präsenz.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Ernest_Hemingway_1923_passport_photo.jpg?width=180" },
+          { label: "Humphrey Bogart", era: "klassisches Hollywood", status: "historisch", percent: 58, note: "Vergleichbare ruhige Ausstrahlung und kantige Gesamterscheinung.", image_url: "https://commons.wikimedia.org/wiki/Special:FilePath/Humphrey_Bogart_1940.jpg?width=180" }
+        ]
+      },
+      critical: "Ein hochwertiger, klar strukturierter Premium-Look mit starker visueller Fuehrung und sympathischer Praesenz.",
+      tips: [
+        "Weiches Licht von vorne lässt Hautbild und Augenpartie hochwertiger wirken.",
+        "Kamera auf Augenhöhe halten, damit Proportionen nicht verzerrt werden.",
+        "Ein leichtes, echtes Lächeln steigert Sympathie ohne Präsenzverlust."
+      ],
+      legal_note: "Hinweis: visuelle Einschätzung anhand von Fotos. Ähnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse."
+    };
+    state.lastReport = report;
+    state.lastTestId = state.clientTestCode;
+    setStep(3);
+    const loading = $("[data-loading]");
+    const reportNode = $("[data-report]");
+    if (loading) loading.hidden = true;
+    if (reportNode) reportNode.hidden = false;
+    renderReport(report);
+  }
+
+  const next = $("[data-next]");
+  const prev = $("[data-prev]");
+  if (next) next.addEventListener("click", () => {
+    if (!canContinue()) return;
+    if (state.step === 2) return createReport();
+    setStep(state.step + 1);
+  });
+  if (prev) prev.addEventListener("click", () => setStep(state.step - 1));
+  form.addEventListener("input", updateNav);
+  form.addEventListener("change", updateNav);
+  $$("[data-start-camera]").forEach(button => button.addEventListener("click", () => startCamera(button.dataset.startCamera)));
+  $$("[data-capture]").forEach(button => button.addEventListener("click", () => capture(button.dataset.capture, false)));
+  $$("[data-upload]").forEach(input => input.addEventListener("change", () => handleUpload(input)));
+  const printButton = $("[data-print]");
+  const resetButton = $("[data-reset]");
+  const shareButton = $("[data-share]");
+  const directButton = $("[data-direct-report]");
+  const reelButton = $("[data-reel-report]");
+  if (printButton) printButton.addEventListener("click", () => window.print());
+  if (resetButton) resetButton.addEventListener("click", () => window.location.reload());
+  if (directButton) directButton.addEventListener("click", () => { window.location.href = directReportUrl(); });
+  if (reelButton) reelButton.addEventListener("click", () => {
+    window.location.href = `steckbrief-reel.html?mode=owner&tid=${encodeURIComponent(state.lastTestId || state.clientTestCode)}`;
+  });
+  if (shareButton) shareButton.addEventListener("click", async () => {
+    const textValue = shareText();
+    if (navigator.share) await navigator.share({ title: "FaceInsight Premium-Steckbrief", text: textValue, url: window.location.href });
+    else if (navigator.clipboard) await navigator.clipboard.writeText(textValue);
+  });
+  window.addEventListener("beforeunload", stopCamera);
+  initClientTestCode();
+  setStep(0);
+  if (new URLSearchParams(window.location.search).get("demo") === "premium") {
+    demoReport();
+  }
+})();

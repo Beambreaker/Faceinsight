@@ -1,0 +1,339 @@
+﻿<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FaceInsight Premium Generator</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#081525">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-0315">
+</head>
+<body>
+  <main class="fi-app" data-fi-app>
+    <aside class="fi-sidebar" aria-label="FaceInsight Ablauf">
+      <a class="fi-brand" href="./" aria-label="FaceInsight Generator">
+        <span class="fi-brand-mark"></span>
+        <strong>Face<span>Insight</span></strong>
+      </a>
+      <p>Premium-Steckbrief aus zwei Frontfotos: neutral und laechelnd. Die Report-Maske ist fest gebaut, die Felder werden per KI gefuellt.</p>
+      <ol class="fi-steps" aria-label="Generator Schritte">
+        <li class="is-active" data-step-indicator="0"><span>1</span> Einwilligung</li>
+        <li data-step-indicator="1"><span>2</span> Kamera</li>
+        <li data-step-indicator="2"><span>3</span> Angaben</li>
+        <li data-step-indicator="3"><span>4</span> Steckbrief</li>
+      </ol>
+      <div class="fi-sidebar-note">
+        <strong>Kamera-Ampel</strong>
+        <p>Rot: kein gutes Bild. Gelb: fast bereit. Gruen: Countdown startet. Auf modernen Handys wird zusaetzlich geprueft, ob ein Gesicht im Bild ist.</p>
+      </div>
+    </aside>
+
+    <section class="fi-workspace">
+      <form class="fi-form" data-fi-form novalidate>
+        <section class="fi-step is-active" data-step="0">
+          <span class="fi-kicker">Schritt 1</span>
+          <h1>Premium-Steckbrief starten</h1>
+          <p class="fi-lead">FaceInsight erstellt eine visuelle, nicht-medizinische Einordnung aus deinen Bildern. Es findet keine Identifikation und kein biometrischer Abgleich statt.</p>
+          <input type="hidden" name="client_test_code">
+          <div class="fi-code-card">
+            <span>Analyse-Code</span>
+            <strong data-client-test-code>FI-...</strong>
+            <small>Automatischer Schluessel fuer unsere Datenbank.</small>
+          </div>
+          <div class="fi-consent-grid">
+            <label class="fi-choice">
+              <span>
+                <strong>Modus</strong>
+                <small>Free zeigt Teilergebnis, Premium zeigt alles, Pair vergleicht zwei Test-IDs.</small>
+              </span>
+              <select name="report_mode">
+                <option value="premium" selected>Premium (ohne Paywall)</option>
+                <option value="pair">Pair-Analyse</option>
+              </select>
+            </label>
+            <label class="fi-choice">
+              <input type="radio" name="storage_mode" value="delete_immediately" checked>
+              <span><strong>Direkt nach Analyse loeschen</strong><small>Empfohlener Standard fuer Privatnutzer.</small></span>
+            </label>
+            <label class="fi-choice">
+              <input type="radio" name="storage_mode" value="support_7_days">
+              <span><strong>7 Tage fuer Support behalten</strong><small>Nur wenn spaeter Speicherlogik ergaenzt wird.</small></span>
+            </label>
+          </div>
+          <label class="fi-check"><input type="checkbox" name="privacy_ack"><span>Ich stimme der Verarbeitung meiner Bilder fuer diese Analyse zu.</span></label>
+          <label class="fi-check"><input type="checkbox" name="similarity_ack"><span>Ich willige ausdruecklich ein, dass FaceInsight aus meinem Foto temporaere Vergleichsmerkmale fuer eine visuelle Aehnlichkeitsanalyse mit realen oder historischen Referenzpersonen berechnet. Das Ergebnis dient nur der Unterhaltung und ist keine Identifikation, Abstammungsanalyse oder wissenschaftliche Aussage.</span></label>
+          <label class="fi-check"><input type="checkbox" name="rights_ack"><span>Ich habe die Rechte und Einwilligungen fuer die verwendeten Bilder.</span></label>
+          <label class="fi-check"><span>Pair-Analyse Basis-Test-ID (nur fuer Modus Pair):</span><input type="text" name="pair_base_test_id" placeholder="z. B. FI-ABC123DEF456"></label>
+        </section>
+
+        <section class="fi-step" data-step="1">
+          <span class="fi-kicker">Schritt 2</span>
+          <h1>Frontfotos + optional Seitenprofil</h1>
+          <p class="fi-lead">Halte das Handy auf Augenhoehe direkt vor dein Gesicht. Erst neutral aufnehmen, dann in gleicher Position laecheln. Optional kannst du ein Seitenprofil hochladen fuer mehr Praezision.</p>
+
+          <div class="fi-phone-guide" aria-label="Kamerahaltung">
+            <div class="fi-phone">
+              <span></span>
+              <i></i>
+            </div>
+            <div>
+              <strong>Handy gerade gegenueber vom Gesicht halten</strong>
+              <p>Gutes Frontlicht, ruhiger Hintergrund, Kopf nicht kippen. Der Ausloeser bleibt auf dem Handy sichtbar.</p>
+            </div>
+          </div>
+
+          <div class="fi-camera-status" data-camera-status>Bereit. Kamera funktioniert ueber HTTPS direkt im Browser.</div>
+
+          <div class="fi-photo-grid">
+            <article class="fi-photo-card is-red" data-photo-card="front_neutral">
+              <div class="fi-frame" data-frame="front_neutral">
+                <video playsinline muted data-video="front_neutral"></video>
+                <img alt="Front neutral" data-preview="front_neutral">
+                <canvas hidden data-canvas="front_neutral"></canvas>
+                <div class="fi-face-ring"><span></span></div>
+                <div class="fi-frame-top"><strong>Front neutral</strong><small data-live-state="front_neutral">Kamera oder Upload waehlen</small></div>
+                <div class="fi-countdown" data-countdown="front_neutral" hidden>3</div>
+                <button class="fi-frame-capture" type="button" data-capture="front_neutral">Jetzt ausloesen</button>
+              </div>
+              <div class="fi-card-body">
+                <h2>1. Neutral</h2>
+                <p>Gerade in die Kamera schauen, Mund entspannt, Kopf mittig im Umriss.</p>
+                <div class="fi-quality" data-quality="front_neutral">Noch kein Foto</div>
+                <div class="fi-actions-row">
+                  <button type="button" data-start-camera="front_neutral">Kamera</button>
+                  <button type="button" data-capture="front_neutral">Ausloesen</button>
+                  <label>Upload <input type="file" accept="image/*" capture="user" data-upload="front_neutral"></label>
+                </div>
+              </div>
+            </article>
+
+            <article class="fi-photo-card is-red" data-photo-card="front_smile">
+              <div class="fi-frame" data-frame="front_smile">
+                <video playsinline muted data-video="front_smile"></video>
+                <img alt="Front laechelnd" data-preview="front_smile">
+                <canvas hidden data-canvas="front_smile"></canvas>
+                <div class="fi-face-ring"><span></span></div>
+                <div class="fi-frame-top"><strong>Front laechelnd</strong><small data-live-state="front_smile">Kamera oder Upload waehlen</small></div>
+                <div class="fi-countdown" data-countdown="front_smile" hidden>3</div>
+                <button class="fi-frame-capture" type="button" data-capture="front_smile">Jetzt ausloesen</button>
+              </div>
+              <div class="fi-card-body">
+                <h2>2. Laecheln</h2>
+                <p>Gleiche Position, aber mit sichtbarem, natuerlichem Laecheln.</p>
+                <div class="fi-quality" data-quality="front_smile">Noch kein Foto</div>
+                <div class="fi-actions-row">
+                  <button type="button" data-start-camera="front_smile">Kamera</button>
+                  <button type="button" data-capture="front_smile">Ausloesen</button>
+                  <label>Upload <input type="file" accept="image/*" capture="user" data-upload="front_smile"></label>
+                </div>
+              </div>
+            </article>
+
+            <article class="fi-photo-card is-yellow" data-photo-card="side_profile">
+              <div class="fi-frame" data-frame="side_profile">
+                <video playsinline muted data-video="side_profile"></video>
+                <img alt="Seitenprofil optional" data-preview="side_profile">
+                <canvas hidden data-canvas="side_profile"></canvas>
+                <div class="fi-photo-gridlines" aria-hidden="true"></div>
+                <div class="fi-face-ring"><span></span></div>
+                <div class="fi-frame-top"><strong>Seitenprofil (optional)</strong><small data-live-state="side_profile">Upload empfohlen</small></div>
+                <div class="fi-countdown" data-countdown="side_profile" hidden>3</div>
+                <button class="fi-frame-capture" type="button" data-capture="side_profile">Jetzt ausloesen</button>
+              </div>
+              <div class="fi-card-footer">
+                <div class="fi-quality" data-quality="side_profile">Optional fuer hoehere Analysegenauigkeit</div>
+                <div class="fi-actions-row">
+                  <button type="button" data-start-camera="side_profile">Kamera</button>
+                  <button type="button" data-capture="side_profile">Ausloesen</button>
+                  <label>Upload <input type="file" accept="image/*" capture="environment" data-upload="side_profile"></label>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="fi-step" data-step="2">
+          <span class="fi-kicker">Schritt 3</span>
+          <h1>Angaben fuer die Maske</h1>
+          <p class="fi-lead">Diese Angaben steuern die Beschriftung. Die KI prueft trotzdem, ob das Foto visuell plausibel zum angegebenen Alter passt.</p>
+          <div class="fi-field-grid">
+            <label>Vorname, Spitzname oder Fantasiename <input type="text" name="first_name" maxlength="40" placeholder="z. B. Sven"></label>
+            <label>Reales Alter <input type="number" name="age" min="13" max="100" placeholder="z. B. 29"></label>
+            <label>Selbstauskunft Geschlecht
+              <select name="self_described_gender">
+                <option value="">Nicht angeben</option>
+                <option value="woman">Frau</option>
+                <option value="man">Mann</option>
+                <option value="diverse">Divers / anders</option>
+              </select>
+            </label>
+            <label>Make-up / Styling
+              <select name="makeup_status">
+                <option value="">Bitte waehlen</option>
+                <option value="no_makeup">Ungeschminkt</option>
+                <option value="light_makeup">Leicht geschminkt</option>
+                <option value="visible_makeup">Geschminkt</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="fi-step" data-step="3">
+          <div class="fi-loading" data-loading hidden>
+            <span class="fi-kicker">Analyse laeuft</span>
+            <h1>Dein Premium-Steckbrief wird erstellt</h1>
+            <p data-loading-copy>Bilder werden vorbereitet.</p>
+            <div class="fi-loading-bar"><i data-loading-bar></i></div>
+            <strong data-loading-percent>0%</strong>
+          </div>
+
+          <div class="fi-report-error" data-report-error hidden></div>
+
+          <article class="fi-premium-sheet fi-premium-profile" data-report hidden>
+            <header class="fi-sheet-header fi-profile-header">
+              <div class="fi-custom-top-logo" aria-label="FaceInsight Logo">
+                <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
+              </div>
+              <h1>Steckbrief - Analyseprofil</h1>
+              <p>FaceInsight Premium Report &middot; KI-gestützte Gesichtsanalyse</p>
+            </header>
+
+            <section class="fi-fact-row fi-profile-facts" aria-label="Report Eckdaten">
+              <article class="fi-fact-card">
+                <i class="fi-icon fi-icon-calendar" aria-hidden="true"></i>
+                <div>
+                  <span>Alter (real)</span>
+                  <strong><span data-report-age-short>-</span> Jahre</strong>
+                </div>
+              </article>
+              <article class="fi-fact-card">
+                <i class="fi-icon fi-icon-age" aria-hidden="true"></i>
+                <div>
+                  <span>Optisches Alter</span>
+                  <strong data-report-visual-age>-</strong>
+                </div>
+              </article>
+              <article class="fi-fact-card">
+                <i class="fi-icon fi-icon-star" aria-hidden="true"></i>
+                <div>
+                  <span>Gesamteindruck</span>
+                  <strong data-report-type>klar, präsent, modern</strong>
+                </div>
+              </article>
+              <article class="fi-fact-card fi-fact-compare">
+                <div>
+                  <span>Neutral vs. Lächelnd</span>
+                  <strong>Ausdruckswechsel</strong>
+                  <small>Neutral kontrolliert, lächelnd deutlich offener und nahbarer.</small>
+                </div>
+                <div class="fi-mini-pair">
+                  <img alt="Neutral" data-mini-neutral>
+                  <img alt="Lächelnd" data-mini-smile>
+                </div>
+              </article>
+            </section>
+
+            <section class="fi-blueprint-panel" aria-label="Blueprint Vorschau">
+              <div class="fi-blueprint-scan" aria-hidden="true"></div>
+              <article class="fi-impact-analysis">
+                <span>Claude AI-Ergebnis</span>
+                <h2>Wie wirke ich auf andere?</h2>
+                <p data-report-impact>Präsent, freundlich und klar. Die Ausstrahlung wirkt offen, modern und vertrauenswürdig.</p>
+              </article>
+            </section>
+
+            <section class="fi-custom-main">
+              <figure class="fi-report-photo fi-profile-photo fi-portrait-clean">
+                <img alt="Premium Portrait" data-report-blueprint>
+                <div class="fi-photo-gridlines" aria-hidden="true"></div>
+                <div class="fi-landmarks" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span>
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <figcaption><span data-report-name>FaceInsight</span> &middot; Analyse vom <span data-report-date>-</span></figcaption>
+              </figure>
+
+              <section class="fi-report-card fi-analysis-card">
+                <h2>Gesichtsanalyse</h2>
+                <p class="fi-attr-level"><strong>Allgemeiner Analyse-Level:</strong> <span data-report-overall-score>87</span> / 100</p>
+                <div class="fi-analysis-list" data-report-observations></div>
+              </section>
+
+              <section class="fi-report-card fi-score-card fi-profile-score-card">
+                <h2>Merkmalswerte</h2>
+                <small class="fi-score-scale">(1 = niedrig | 10 = sehr ausgepraegt)</small>
+                <div class="fi-profile-metrics" data-report-scores></div>
+                <footer>
+                  <i class="fi-icon fi-icon-age" aria-hidden="true"></i>
+                  <span>Bewertungsskala: 1-10. Höhere Werte stehen für eine stärkere Ausprägung des sichtbaren Merkmals.</span>
+                </footer>
+              </section>
+            </section>
+
+            <section class="fi-deep-grid">
+              <section class="fi-mini-card fi-profile-archetype-card">
+                <h2>Ähnlichkeiten &amp; Archetypen</h2>
+                <div data-report-archetype></div>
+                <div class="fi-profile-tags" data-report-tags></div>
+              </section>
+
+              <section class="fi-mini-card fi-normal-smile-card">
+                <h2>Normal vs. lächelnd</h2>
+                <div class="fi-ns-compare">
+                  <figure><img alt="Neutral" data-mini-neutral><figcaption>Neutral</figcaption></figure>
+                  <figure><img alt="Lächelnd" data-mini-smile><figcaption>Lächelnd</figcaption></figure>
+                </div>
+                <ul class="fi-compare-points">
+                  <li>Das Lächeln erhöht die wahrgenommene Zugänglichkeit.</li>
+                  <li>Augenpartie und Mundlinie öffnen die Wirkung sichtbar.</li>
+                  <li>Stabile Kopfhaltung macht den Ausdruck glaubwürdig.</li>
+                </ul>
+              </section>
+
+              <section class="fi-mini-card fi-profile-reference-card">
+                <h2>Reale &amp; historische Ähnlichkeit</h2>
+                <div data-report-reference></div>
+                <p class="fi-reference-note">Die Prozentwerte zeigen eine modellbasierte visuelle Ähnlichkeit. Sie sind keine Identifikation, keine Verwandtschaftsaussage und kein biometrischer Abgleich.</p>
+              </section>
+            </section>
+
+            <section class="fi-report-card fi-final-card fi-profile-final">
+              <div class="fi-final-icon" aria-hidden="true">&#9733;</div>
+              <div>
+                <h2>Kurzfazit</h2>
+                <p data-report-critical></p>
+              </div>
+              <strong data-report-type>klar, praesent, modern</strong>
+            </section>
+
+            <footer class="fi-sheet-footer fi-profile-footer">
+              <p><span data-report-legal></span><br>Test-ID: <strong data-report-test-id>-</strong></p>
+              <div class="fi-trust-row" aria-label="Vertrauen">
+                <span><strong>Wissenschaftlich fundiert</strong><small>Claude AI-gestuetzte Analyse auf Basis moderner Algorithmen.</small></span>
+                <span><strong>Individuell &amp; praezise</strong><small>Persoenliche Erkenntnisse fuer mehr Selbstverstaendnis.</small></span>
+                <span><strong>100% vertraulich</strong><small>Ihre Daten sind sicher und geschuetzt.</small></span>
+                <span><strong>Neutral vs. Lächeln</strong><small>Zwei Frontfotos zeigen den verlässlichen Ausdrucksvergleich.</small></span>
+              </div>
+              <div class="fi-report-actions">
+                <button type="button" data-print>Drucken</button>
+                <button type="button" data-share>Teilen</button>
+                <button type="button" data-direct-report>Direkt-Steckbrief</button>
+                <button type="button" data-reel-report>Reel-Version</button>
+                <button type="button" data-reset>Neu starten</button>
+              </div>
+            </footer>
+
+          </article>
+        </section>
+
+        <nav class="fi-nav">
+          <button type="button" data-prev disabled>Zurueck</button>
+          <button type="button" data-next>Weiter</button>
+        </nav>
+      </form>
+    </section>
+  </main>
+
+  <script src="assets/js/faceinsight.js?v=20260501-0315"></script>
+</body>
+</html>

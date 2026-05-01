@@ -1,0 +1,2 @@
+test_id,mode,created_at,expires_at,first_name,actual_age,visual_age_estimate,overall_type,pair_base_test_id,status,notes
+FI-DEMO123456,premium,2026-04-29T22:00:00Z,2026-05-06T22:00:00Z,Maximilian,34,32-36,ueberdurchschnittlich,,demo,Vorlage fuer FaceInsight Testdaten

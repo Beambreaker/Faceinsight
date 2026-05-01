@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FaceInsight Reel Steckbrief</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    :root{
+      --gold:#f1c970;
+      --ink:#eaf3ff;
+      --muted:#bdd0e7;
+      --line:rgba(122,164,205,.42);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 7%, rgba(241,201,112,.16), transparent 23%),
+        radial-gradient(circle at 87% 4%, rgba(76,156,255,.18), transparent 25%),
+        linear-gradient(180deg, #030c18, #041427 55%, #020c18);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:14px;
+    }
+    .reel-card{
+      width:min(100%,430px);
+      border:1px solid var(--line);
+      border-radius:22px;
+      overflow:hidden;
+      background:linear-gradient(180deg, rgba(6,23,42,.96), rgba(5,18,34,.98));
+      box-shadow:0 26px 70px rgba(0,0,0,.58),0 0 0 1px rgba(241,201,112,.22),0 0 40px rgba(76,156,255,.2);
+    }
+    .reel-head{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(122,164,205,.3);
+      text-align:center;
+    }
+    .reel-head img{
+      height:36px;
+      object-fit:contain;
+      max-width:100%;
+      filter:drop-shadow(0 0 10px rgba(83,161,255,.45)) drop-shadow(0 0 16px rgba(241,201,112,.35));
+    }
+    .reel-head h1{
+      margin:8px 0 2px;
+      font-size:20px;
+      line-height:1.1;
+      color:#f8e4b5;
+      letter-spacing:.5px;
+    }
+    .reel-head p{margin:0;font-size:12px;color:var(--muted)}
+    .reel-hero{
+      position:relative;
+      padding:12px 14px 8px;
+      display:grid;
+      justify-items:center;
+      gap:10px;
+    }
+    .reel-hero img{
+      width:186px;
+      height:186px;
+      object-fit:cover;
+      object-position:center 16%;
+      border-radius:50%;
+      border:1px solid rgba(241,201,112,.52);
+      box-shadow:0 0 0 2px rgba(75,156,255,.46),0 0 34px rgba(75,156,255,.46),0 0 18px rgba(241,201,112,.34), inset 0 0 18px rgba(241,201,112,.24);
+      filter:saturate(.96) contrast(1.06);
+      background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.12), rgba(6,22,40,.88) 68%);
+      padding:2px;
+    }
+    .reel-badge{
+      position:static;
+      background:linear-gradient(180deg, rgba(10,36,64,.92), rgba(8,26,46,.94));
+      border:1px solid rgba(241,201,112,.55);
+      border-radius:10px;
+      padding:6px 9px;
+      font-size:11px;
+      color:#f1e5c5;
+      font-weight:800;
+    }
+    .reel-copy{padding:2px 14px 8px}
+    .reel-copy h2{
+      margin:0 0 8px;
+      font-size:22px;
+      line-height:1.15;
+      color:#f6e2b2;
+    }
+    .reel-copy p{
+      margin:0;
+      color:var(--ink);
+      font-size:14px;
+      line-height:1.4;
+    }
+    .reel-pills{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      padding:10px 14px 8px;
+    }
+    .reel-pills span{
+      border:1px solid rgba(241,201,112,.45);
+      border-radius:999px;
+      text-align:center;
+      padding:7px 8px 8px;
+      font-size:12px;
+      font-weight:800;
+      color:#f2d79c;
+      background:rgba(7,26,46,.8);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      line-height:1.2;
+      gap:2px;
+    }
+    .reel-pills b{display:block;font-size:13px}
+    .reel-mini-grid{
+      display:grid;
+      gap:8px;
+      grid-template-columns:1fr 1fr;
+      padding:2px 14px 10px;
+    }
+    .reel-mini{
+      border:1px solid rgba(122,164,205,.38);
+      border-radius:12px;
+      padding:10px;
+      background:linear-gradient(180deg, rgba(8,31,56,.95), rgba(5,21,39,.98));
+    }
+    .reel-mini-top{
+      display:grid;
+      grid-template-columns:52px 1fr;
+      gap:8px;
+      align-items:center;
+      margin-bottom:6px;
+    }
+    .reel-mini-top img{
+      width:52px;
+      height:52px;
+      object-fit:cover;
+      border-radius:50%;
+      border:1px solid rgba(241,201,112,.6);
+      box-shadow:0 0 12px rgba(76,156,255,.32), inset 0 0 10px rgba(241,201,112,.22);
+      background:#0a1a2c;
+    }
+    .reel-mini h3{
+      margin:0 0 7px;
+      color:#f6e2b2;
+      font-size:14px;
+      line-height:1.15;
+    }
+    .reel-mini p{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .reel-actions{
+      border-top:1px solid rgba(122,164,205,.3);
+      padding:10px 14px 14px;
+      display:grid;
+      gap:8px;
+      grid-template-columns:1fr 1fr;
+    }
+    .reel-actions a,.reel-actions button{
+      border:1px solid rgba(122,164,205,.5);
+      border-radius:10px;
+      min-height:42px;
+      font-weight:800;
+      font-size:13px;
+      color:#eaf3ff;
+      background:linear-gradient(180deg, rgba(13,47,82,.96), rgba(10,35,62,.96));
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .reel-actions .gold{
+      background:linear-gradient(180deg, #e5c37c, #ca993f);
+      border-color:rgba(241,201,112,.85);
+      color:#14253a;
+    }
+    .reel-footer{
+      color:#a8bfd8;
+      font-size:11px;
+      line-height:1.3;
+      text-align:center;
+      padding:0 14px 14px;
+    }
+    .reel-cta{
+      margin:4px 14px 10px;
+      border:1px solid rgba(241,201,112,.48);
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(10,36,64,.9), rgba(8,26,46,.92));
+      padding:10px;
+      text-align:center;
+    }
+    .reel-cta p{
+      margin:0 0 8px;
+      color:#f3dfb0;
+      font-size:13px;
+      font-weight:800;
+      line-height:1.3;
+    }
+    .reel-cta a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      padding:8px 14px;
+      border-radius:10px;
+      border:1px solid rgba(241,201,112,.78);
+      background:linear-gradient(180deg, #e5c37c, #ca993f);
+      color:#14253a;
+      font-size:13px;
+      font-weight:900;
+      text-decoration:none;
+      box-shadow:0 0 14px rgba(241,201,112,.35);
+    }
+    .reel-copy,.reel-pills,.reel-mini-grid,.reel-actions,.reel-footer{
+      width:100%;
+    }
+  </style>
+</head>
+<body>
+  <article class="reel-card" aria-label="FaceInsight Social Reel Steckbrief">
+    <header class="reel-head">
+      <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
+      <h1>Social Reel Steckbrief</h1>
+      <p>Kurzfassung für schnelles Teilen</p>
+    </header>
+
+    <section class="reel-hero">
+      <span class="reel-badge">Claude AI Analyse · 8.7 / 10</span>
+      <img src="assets/img/user-smile.png" alt="Profilfoto lächelnd">
+    </section>
+
+    <section class="reel-copy">
+      <h2>Souverän, präsent und authentisch.</h2>
+      <p>Ruhige Geometrie, klare Symmetrie und ein natürliches Lächeln sorgen für eine vertrauensvolle, starke Außenwirkung.</p>
+    </section>
+
+    <div class="reel-pills" aria-label="Kernaussagen">
+      <span>Symmetrie <b>8.3</b></span>
+      <span>Ausdruck <b>9.0</b></span>
+      <span>Harmonie <b>8.8</b></span>
+    </div>
+
+    <section class="reel-mini-grid" aria-label="Archetyp und Lookalike">
+      <article class="reel-mini" id="reel-archetype">
+        <div class="reel-mini-top">
+          <img src="assets/img/archetype-modern.jpg" alt="Archetyp Portrait" id="reel-archetype-image">
+          <div>
+            <h3 style="margin:0">Archetyp</h3>
+            <p id="reel-archetype-title">Der Stratege</p>
+          </div>
+        </div>
+        <p id="reel-archetype-copy">Ruhig, analytisch, klar in der Wirkung.</p>
+      </article>
+      <article class="reel-mini" id="reel-lookalike">
+        <div class="reel-mini-top">
+          <img src="assets/img/sean-connery.jpg" alt="Lookalike Portrait" id="reel-lookalike-image">
+          <div>
+            <h3 style="margin:0">Lookalike</h3>
+            <p id="reel-lookalike-title">Sean Connery</p>
+          </div>
+        </div>
+        <p id="reel-lookalike-copy">Modellbasierte visuelle Ähnlichkeit auf Basis Kontur, Symmetrie und Mimiklinie.</p>
+      </article>
+    </section>
+
+    <section class="reel-cta" aria-label="Premium Call to Action">
+      <p>Traust du dich auch die Wahrheit über deine optische Wirkung zu erfahren</p>
+      <a href="#" data-paywall-link>Jetzt Premium-Steckbrief freischalten</a>
+    </section>
+
+    <nav class="reel-actions" aria-label="Teilen">
+      <button class="gold" type="button" data-share-native>Teilen</button>
+      <a href="#" data-share-whatsapp>WhatsApp</a>
+      <a href="#" data-share-instagram target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="#" data-share-facebook target="_blank" rel="noopener noreferrer">Facebook</a>
+    </nav>
+
+    <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollständige Premium-Report enthält alle Detailmodule.</p>
+  </article>
+
+    <script>
+    (function(){
+      "use strict";
+
+      var params = new URLSearchParams(window.location.search);
+      var mode = (params.get("mode") || "owner").toLowerCase();
+      var url = window.location.href;
+      var text = "Mein FaceInsight Social Reel Steckbrief";
+      var exp = params.get("exp") || "";
+      var sig = params.get("sig") || "";
+      var fallbackTid = "FI-MOLS80T2W4XB2";
+      var ref = normalizeTid(params.get("ref") || params.get("tid") || fallbackTid) || fallbackTid;
+      var baseUrl = window.location.origin + window.location.pathname;
+      var guestUrl = baseUrl + "?mode=guest&ref=" + encodeURIComponent(ref);
+      var ownerUrl = baseUrl + "?mode=owner&tid=" + encodeURIComponent(ref);
+      var paywallUrl = baseUrl.replace("steckbrief-reel.html", "steckbrief-direkt.html") + "?mode=guest&ref=" + encodeURIComponent(ref);
+      var apiBase = "./api/share-token.php";
+      var reportApiBase = "./api/report-data.php";
+      var signedGuestUrl = null;
+
+      function normalizeTid(value){
+        var clean = String(value || "").trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "");
+        return /^FI-[A-Z0-9\-]{6,64}$/.test(clean) ? clean : "";
+      }
+
+      function escapeHtml(value){
+        return String(value || "").replace(/[&<>"']/g, function(char){
+          return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[char];
+        });
+      }
+
+      function lockGuestView(){
+        var card = document.querySelector(".reel-card");
+        if (!card) return;
+        var safeRef = escapeHtml(ref || "-");
+        card.innerHTML = [
+          '<header class="reel-head"><img src="assets/img/logo-wordmark.png" alt="FaceInsight"><h1>Gast-Link abgelaufen</h1><p>Bitte neuen Share-Link anfordern.</p></header>',
+          '<section class="reel-copy" style="padding:16px 14px 8px"><p>Dieser Link ist ungültig oder abgelaufen. Für den Report mit Test-ID <strong>',
+          safeRef,
+          '</strong> bitte einen neuen Gast-Link erstellen.</p></section>',
+          '<nav class="reel-actions" aria-label="Aktionen"><a class="gold" href="steckbrief-direkt.html">Zum Premium-Steckbrief</a><a href="steckbrief-reel.html">Reel neu laden</a></nav>'
+        ].join("");
+      }
+
+      async function issueGuestUrl(){
+        if (signedGuestUrl) return signedGuestUrl;
+        if (!normalizeTid(ref)) return null;
+        try {
+          var res = await fetch(apiBase + "?action=issue&tid=" + encodeURIComponent(ref), { credentials: "same-origin" });
+          if (!res.ok) return null;
+          var json = await res.json();
+          if (json && json.success && json.guest_url) {
+            signedGuestUrl = json.guest_url;
+            return signedGuestUrl;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      async function verifyGuest(){
+        if (mode !== "guest") return true;
+        if (!normalizeTid(ref) || !exp || !sig) return false;
+        try {
+          var verifyUrl = apiBase + "?action=verify&mode=guest&tid=" + encodeURIComponent(ref) + "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+          var res = await fetch(verifyUrl, { credentials: "same-origin" });
+          if (!res.ok) return false;
+          var json = await res.json();
+          return !!(json && json.valid === true);
+        } catch (_) {
+          return false;
+        }
+      }
+
+      async function getShareUrl(){
+        if (mode !== "owner") return url;
+        var issued = await issueGuestUrl();
+        return issued || guestUrl;
+      }
+
+      function scoreToTen(value){
+        var number = Number(value || 0);
+        if (!isFinite(number)) return 0;
+        return number > 10 ? Math.max(0, Math.min(10, number / 10)) : Math.max(0, Math.min(10, number));
+      }
+
+      function renderStoredReport(report){
+        if (!report) return;
+        var header = report.report_header || {};
+        var title = document.querySelector(".reel-copy h2");
+        var summary = document.querySelector(".reel-copy p");
+        if (title) title.textContent = header.overall_type || report.share_profile || "FaceInsight Profil";
+        if (summary) summary.textContent = report.impact || report.critical || "";
+        var portrait = document.querySelector(".reel-hero img");
+        var portraitImage = report.visual_asset && report.visual_asset.premium_portrait_image;
+        if (portrait && portraitImage) portrait.src = portraitImage;
+        var badge = document.querySelector(".reel-badge");
+        if (badge) badge.textContent = "FaceInsight KI Analyse · " + (header.visual_age_estimate || "optische Einordnung");
+
+        var scores = Array.isArray(report.scores) ? report.scores.slice(0, 3) : [];
+        var pills = document.querySelectorAll(".reel-pills span");
+        scores.forEach(function(item, index){
+          if (!pills[index]) return;
+          pills[index].innerHTML = escapeHtml(item.label || "Merkmal") + " <b>" + scoreToTen(item.value).toFixed(1) + "</b>";
+        });
+
+        var archetype = report.archetype || {};
+        var aTitle = document.getElementById("reel-archetype-title");
+        var aCopy = document.getElementById("reel-archetype-copy");
+        var aImg = document.getElementById("reel-archetype-image");
+        if (aTitle) aTitle.textContent = archetype.label || "Archetyp";
+        if (aCopy) aCopy.textContent = archetype.description || "";
+        if (aImg && archetype.image_url) aImg.src = archetype.image_url;
+
+        var refs = report.reference && Array.isArray(report.reference.items) ? report.reference.items : [];
+        var first = refs[0] || {};
+        var lTitle = document.getElementById("reel-lookalike-title");
+        var lCopy = document.getElementById("reel-lookalike-copy");
+        var lImg = document.getElementById("reel-lookalike-image");
+        if (lTitle) lTitle.textContent = first.label || "Visuelle Referenz";
+        if (lCopy) lCopy.textContent = first.note || "";
+        if (lImg && first.image_url) lImg.src = first.image_url;
+      }
+
+      async function loadStoredReport(){
+        if (!normalizeTid(ref)) return;
+        var reportUrl = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
+        if (mode === "guest") reportUrl += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+        try {
+          var res = await fetch(reportUrl, { credentials: "same-origin" });
+          if (!res.ok) return false;
+          var json = await res.json();
+          if (json && json.success && json.report) {
+            renderStoredReport(json.report);
+            return true;
+          }
+        } catch (_) {}
+        return false;
+      }
+
+      var cta = document.querySelector(".reel-cta");
+      if (cta && mode === "owner") cta.style.display = "none";
+      var paywallLink = document.querySelector("[data-paywall-link]");
+      if (paywallLink) paywallLink.setAttribute("href", paywallUrl);
+
+      var nativeBtn = document.querySelector("[data-share-native]");
+      if (nativeBtn) nativeBtn.addEventListener("click", async function(){
+        var shareUrl = await getShareUrl();
+        if (navigator.share) {
+          try { await navigator.share({ title: text, text: text, url: shareUrl }); } catch (_) {}
+        } else if (navigator.clipboard) {
+          try { await navigator.clipboard.writeText(shareUrl); } catch (_) {}
+        }
+      });
+      var waBtn = document.querySelector("[data-share-whatsapp]");
+      if (waBtn) waBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + shareUrl), "_blank", "noopener,noreferrer");
+      });
+      var igBtn = document.querySelector("[data-share-instagram]");
+      if (igBtn) igBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        if (navigator.clipboard) navigator.clipboard.writeText(shareUrl).catch(function(){});
+        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+      });
+      var fbBtn = document.querySelector("[data-share-facebook]");
+      if (fbBtn) fbBtn.addEventListener("click", async function(e){
+        e.preventDefault();
+        var shareUrl = await getShareUrl();
+        window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareUrl), "_blank", "noopener,noreferrer");
+      });
+
+      var archetypes = [
+        {
+          title: "Der Stratege",
+          copy: "Ruhig, analytisch und kontrolliert mit klarer, strukturierter Präsenz.",
+          image: "assets/img/archetype-modern.jpg"
+        },
+        {
+          title: "Der Beobachter",
+          copy: "Wachsam, reflektiert und präzise mit ruhiger, fokussierter Außenwirkung.",
+          image: "assets/img/archetype-modern.jpg"
+        }
+      ];
+      var lookalikes = [
+        {
+          title: "Sean Connery",
+          copy: "Ähnlichkeit in Konturführung, Untergesichtsstruktur und ruhiger Mimiklinie.",
+          image: "assets/img/sean-connery.jpg"
+        },
+        {
+          title: "Bryan Cranston",
+          copy: "Ähnlichkeit in Stirn-Höhenrelation, Augenabstand und klarer Präsenzwirkung.",
+          image: "assets/img/bryan-cranston.jpg"
+        }
+      ];
+      function applyDemoFallback(){
+        var a = archetypes[Math.floor(Math.random() * archetypes.length)];
+        var l = lookalikes[Math.floor(Math.random() * lookalikes.length)];
+        var aTitle = document.getElementById("reel-archetype-title");
+        var aCopy = document.getElementById("reel-archetype-copy");
+        var aImg = document.getElementById("reel-archetype-image");
+        var lTitle = document.getElementById("reel-lookalike-title");
+        var lCopy = document.getElementById("reel-lookalike-copy");
+        var lImg = document.getElementById("reel-lookalike-image");
+        if (aTitle) aTitle.textContent = a.title;
+        if (aCopy) aCopy.textContent = a.copy;
+        if (aImg) aImg.src = a.image;
+        if (lTitle) lTitle.textContent = l.title;
+        if (lCopy) lCopy.textContent = l.copy;
+        if (lImg) lImg.src = l.image;
+      }
+      loadStoredReport().then(function(loaded){
+        if (!loaded) applyDemoFallback();
+      });
+
+      verifyGuest().then(function(valid){
+        if (mode === "guest" && !valid) {
+          lockGuestView();
+        }
+      });
+
+      if (mode === "owner" && normalizeTid(ref)) {
+        history.replaceState({}, "", ownerUrl);
+      }
+    })();
+  </script>
+</body>
+</html>
