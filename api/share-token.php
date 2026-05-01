@@ -68,7 +68,7 @@ respond(['success' => false, 'message' => 'unknown action'], 400);
 
 function build_guest_url(string $tid, int $exp, string $sig): string {
     $base = public_base_url();
-    return $base . '/steckbrief-reel.html?mode=guest&ref='
+    return $base . '/steckbrief-reel.html?mode=guest&tid='
         . rawurlencode($tid) . '&exp=' . rawurlencode((string)$exp) . '&sig=' . rawurlencode($sig);
 }
 

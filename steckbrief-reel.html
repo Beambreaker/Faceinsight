@@ -231,17 +231,17 @@
     <header class="reel-head">
       <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
       <h1>Social Reel Steckbrief</h1>
-      <p>Kurzfassung für schnelles Teilen</p>
+      <p>Kurzfassung fr schnelles Teilen</p>
     </header>
 
     <section class="reel-hero">
-      <span class="reel-badge">Claude AI Analyse · 8.7 / 10</span>
-      <img src="assets/img/user-smile.png" alt="Profilfoto lächelnd">
+      <span class="reel-badge">Claude AI Analyse  8.7 / 10</span>
+      <img src="assets/img/user-smile.png" alt="Profilfoto lchelnd">
     </section>
 
     <section class="reel-copy">
-      <h2>Souverän, präsent und authentisch.</h2>
-      <p>Ruhige Geometrie, klare Symmetrie und ein natürliches Lächeln sorgen für eine vertrauensvolle, starke Außenwirkung.</p>
+      <h2>Souvern, prsent und authentisch.</h2>
+      <p>Ruhige Geometrie, klare Symmetrie und ein natrliches Lcheln sorgen fr eine vertrauensvolle, starke Auenwirkung.</p>
     </section>
 
     <div class="reel-pills" aria-label="Kernaussagen">
@@ -269,12 +269,12 @@
             <p id="reel-lookalike-title">Sean Connery</p>
           </div>
         </div>
-        <p id="reel-lookalike-copy">Modellbasierte visuelle Ähnlichkeit auf Basis Kontur, Symmetrie und Mimiklinie.</p>
+        <p id="reel-lookalike-copy">Modellbasierte visuelle hnlichkeit auf Basis Kontur, Symmetrie und Mimiklinie.</p>
       </article>
     </section>
 
     <section class="reel-cta" aria-label="Premium Call to Action">
-      <p>Traust du dich auch die Wahrheit über deine optische Wirkung zu erfahren</p>
+      <p>Traust du dich auch die Wahrheit ber deine optische Wirkung zu erfahren</p>
       <a href="#" data-paywall-link>Jetzt Premium-Steckbrief freischalten</a>
     </section>
 
@@ -285,7 +285,7 @@
       <a href="#" data-share-facebook target="_blank" rel="noopener noreferrer">Facebook</a>
     </nav>
 
-    <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollständige Premium-Report enthält alle Detailmodule.</p>
+    <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollstndige Premium-Report enthlt alle Detailmodule.</p>
   </article>
 
     <script>
@@ -298,12 +298,11 @@
       var text = "Mein FaceInsight Social Reel Steckbrief";
       var exp = params.get("exp") || "";
       var sig = params.get("sig") || "";
-      var fallbackTid = "FI-MOLS80T2W4XB2";
-      var ref = normalizeTid(params.get("ref") || params.get("tid") || fallbackTid) || fallbackTid;
+      var ref = normalizeTid(params.get("tid") || params.get("ref") || "");
       var baseUrl = window.location.origin + window.location.pathname;
-      var guestUrl = baseUrl + "?mode=guest&ref=" + encodeURIComponent(ref);
-      var ownerUrl = baseUrl + "?mode=owner&tid=" + encodeURIComponent(ref);
-      var paywallUrl = baseUrl.replace("steckbrief-reel.html", "steckbrief-direkt.html") + "?mode=guest&ref=" + encodeURIComponent(ref);
+      var guestUrl = ref ? baseUrl + "?mode=guest&tid=" + encodeURIComponent(ref) : baseUrl;
+      var ownerUrl = ref ? baseUrl + "?mode=owner&tid=" + encodeURIComponent(ref) : baseUrl;
+      var paywallUrl = ref ? baseUrl.replace("steckbrief-reel.html", "steckbrief-direkt.html") + "?mode=guest&tid=" + encodeURIComponent(ref) : "steckbrief-direkt.html";
       var apiBase = "./api/share-token.php";
       var reportApiBase = "./api/report-data.php";
       var signedGuestUrl = null;
@@ -325,7 +324,7 @@
         var safeRef = escapeHtml(ref || "-");
         card.innerHTML = [
           '<header class="reel-head"><img src="assets/img/logo-wordmark.png" alt="FaceInsight"><h1>Gast-Link abgelaufen</h1><p>Bitte neuen Share-Link anfordern.</p></header>',
-          '<section class="reel-copy" style="padding:16px 14px 8px"><p>Dieser Link ist ungültig oder abgelaufen. Für den Report mit Test-ID <strong>',
+          '<section class="reel-copy" style="padding:16px 14px 8px"><p>Dieser Link ist ungltig oder abgelaufen. Fr den Report mit Test-ID <strong>',
           safeRef,
           '</strong> bitte einen neuen Gast-Link erstellen.</p></section>',
           '<nav class="reel-actions" aria-label="Aktionen"><a class="gold" href="steckbrief-direkt.html">Zum Premium-Steckbrief</a><a href="steckbrief-reel.html">Reel neu laden</a></nav>'
@@ -384,7 +383,7 @@
         var portraitImage = report.visual_asset && report.visual_asset.premium_portrait_image;
         if (portrait && portraitImage) portrait.src = portraitImage;
         var badge = document.querySelector(".reel-badge");
-        if (badge) badge.textContent = "FaceInsight KI Analyse · " + (header.visual_age_estimate || "optische Einordnung");
+        if (badge) badge.textContent = "FaceInsight KI Analyse  " + (header.visual_age_estimate || "optische Einordnung");
 
         var scores = Array.isArray(report.scores) ? report.scores.slice(0, 3) : [];
         var pills = document.querySelectorAll(".reel-pills span");
@@ -412,19 +411,25 @@
       }
 
       async function loadStoredReport(){
-        if (!normalizeTid(ref)) return;
+        if (!normalizeTid(ref)) {
+          lockMissingReport("Bitte ffne das Reel ber den gltigen Link aus dem Premium-Steckbrief.");
+          return false;
+        }
         var reportUrl = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
         if (mode === "guest") reportUrl += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
         try {
           var res = await fetch(reportUrl, { credentials: "same-origin" });
-          if (!res.ok) return false;
-          var json = await res.json();
-          if (json && json.success && json.report) {
-            renderStoredReport(json.report);
-            return true;
+          var json = await res.json().catch(function(){ return null; });
+          if (!res.ok || !json || !json.success || !json.report) {
+            lockMissingReport((json && json.message) || "Report nicht gefunden. Bitte prfe die Test-ID.");
+            return false;
           }
-        } catch (_) {}
-        return false;
+          renderStoredReport(json.report);
+          return true;
+        } catch (_) {
+          lockMissingReport("Reportdaten konnten nicht geladen werden. Bitte Verbindung prfen und erneut ffnen.");
+          return false;
+        }
       }
 
       var cta = document.querySelector(".reel-cta");
@@ -464,24 +469,24 @@
       var archetypes = [
         {
           title: "Der Stratege",
-          copy: "Ruhig, analytisch und kontrolliert mit klarer, strukturierter Präsenz.",
+          copy: "Ruhig, analytisch und kontrolliert mit klarer, strukturierter Prsenz.",
           image: "assets/img/archetype-modern.jpg"
         },
         {
           title: "Der Beobachter",
-          copy: "Wachsam, reflektiert und präzise mit ruhiger, fokussierter Außenwirkung.",
+          copy: "Wachsam, reflektiert und przise mit ruhiger, fokussierter Auenwirkung.",
           image: "assets/img/archetype-modern.jpg"
         }
       ];
       var lookalikes = [
         {
           title: "Sean Connery",
-          copy: "Ähnlichkeit in Konturführung, Untergesichtsstruktur und ruhiger Mimiklinie.",
+          copy: "hnlichkeit in Konturfhrung, Untergesichtsstruktur und ruhiger Mimiklinie.",
           image: "assets/img/sean-connery.jpg"
         },
         {
           title: "Bryan Cranston",
-          copy: "Ähnlichkeit in Stirn-Höhenrelation, Augenabstand und klarer Präsenzwirkung.",
+          copy: "hnlichkeit in Stirn-Hhenrelation, Augenabstand und klarer Prsenzwirkung.",
           image: "assets/img/bryan-cranston.jpg"
         }
       ];
@@ -501,14 +506,14 @@
         if (lCopy) lCopy.textContent = l.copy;
         if (lImg) lImg.src = l.image;
       }
-      loadStoredReport().then(function(loaded){
-        if (!loaded) applyDemoFallback();
-      });
-
       verifyGuest().then(function(valid){
         if (mode === "guest" && !valid) {
           lockGuestView();
+          return;
         }
+        loadStoredReport().then(function(loaded){
+          if (!loaded && params.get("demo") === "1") applyDemoFallback();
+        });
       });
 
       if (mode === "owner" && normalizeTid(ref)) {

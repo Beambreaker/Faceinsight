@@ -125,6 +125,8 @@ function run_precheck_stage(array $payload): array {
         $contrastRaw = floatval($quality['contrast'] ?? 0);
         $issues = string_list($quality['issues'] ?? []);
         $imagePresent = valid_image($payload['images'][$slot] ?? '');
+        $gate = is_array($quality['gate'] ?? null) ? $quality['gate'] : [];
+        $trustedGate = $gate && ($quality['source'] ?? '') !== 'upload' && ($gate['rejection_reason'] ?? '') !== 'upload_not_live_verified';
 
         $sharpness = max(0.0, min(1.0, $sharpnessRaw / 14.0));
         $lighting = max(0.0, min(1.0, 1.0 - abs($brightnessRaw - 140.0) / 140.0));
@@ -145,9 +147,22 @@ function run_precheck_stage(array $payload): array {
             'occlusion' => $occlusion,
         ];
 
+        if ($trustedGate) {
+            $scores['face_presence'] = !empty($gate['face_detected']) ? 1.0 : 0.0;
+            $scores['single_person'] = intval($gate['face_count'] ?? 0) === 1 ? 1.0 : 0.0;
+            $scores['frontal_pose'] = max(0.0, min(1.0, floatval($gate['frontal_score'] ?? $scores['frontal_pose'])));
+            $scores['face_centering'] = !empty($gate['in_frame']) ? 1.0 : 0.0;
+            $scores['eyes_open'] = max(0.0, min(1.0, floatval($gate['eyes_open_score'] ?? $scores['eyes_open'])));
+            $scores['smile_strength'] = max(0.0, min(1.0, floatval($gate['smile_score'] ?? $scores['smile_strength'])));
+            $scores['teeth_visibility'] = max($scores['teeth_visibility'], max(0.0, min(1.0, ($scores['smile_strength'] - 0.35) / 0.65)));
+        }
+
         $blocking = [];
         if (!$imagePresent && !($isProfile && empty($payload['images'][$slot]))) {
             $blocking[] = $slot . '_missing';
+        }
+        if ($trustedGate && empty($gate['accepted'])) {
+            $blocking[] = 'live_gate_' . safe_key($gate['rejection_reason'] ?? 'failed');
         }
         if ($slot === 'front_neutral' && $scores['smile_strength'] > gate_value('FACEINSIGHT_GATE_NEUTRAL_SMILE_MAX', 0.35)) {
             $blocking[] = 'neutral_smile_too_high';
@@ -512,6 +527,14 @@ function precheck_guidance(string $slot, array $blocking): array {
         $guide[] = match ($reason) {
             'neutral_smile_too_high' => 'Bitte neutral schauen und Mund geschlossen halten.',
             'smile_too_weak' => 'Bitte sichtbar laecheln und Zaehne kurz zeigen.',
+            'face_presence_low', 'live_gate_no_face' => 'Bitte ein menschliches Gesicht klar in den Rahmen bringen.',
+            'single_person_low', 'live_gate_multiple_faces' => 'Bitte nur eine Person im Bild zeigen.',
+            'live_gate_not_centered' => 'Gesicht mittig und auf Augenhoehe ausrichten.',
+            'live_gate_face_cut_off' => 'Gesicht vollstaendig in den Rahmen bringen.',
+            'live_gate_eyes_not_open' => 'Bitte Augen offen halten.',
+            'live_gate_not_frontal' => 'Bitte Kopf frontaler zur Kamera drehen.',
+            'live_gate_neutral_smile' => 'Bitte neutral in die Kamera schauen. Fuer dieses Bild kein Laecheln.',
+            'live_gate_smile_missing' => 'Bitte natuerlich laecheln. Das Laecheln muss klar erkennbar sein.',
             'sharpness_low' => 'Kamera ruhig halten und naeher ans Fenster gehen.',
             'lighting_low' => 'Mehr Frontlicht nutzen, keine starke Gegenlichtquelle.',
             'occlusion_high' => 'Gesicht nicht verdecken, Haare aus Stirn/Augenbereich.',
@@ -703,6 +726,7 @@ function sanitize_payload(array $payload): array {
             'smileHint' => floatval($q['smileHint'] ?? 0),
             'source' => safe_key($q['source'] ?? ''),
             'issues' => string_list($q['issues'] ?? []),
+            'gate' => clean_live_gate($q['gate'] ?? []),
         ];
     }
 
@@ -725,6 +749,22 @@ function sanitize_payload(array $payload): array {
         'images' => $cleanImages,
         'processed_images' => $cleanProcessedImages,
         'image_quality' => $cleanQuality,
+    ];
+}
+
+function clean_live_gate($gate): array {
+    if (!is_array($gate)) return [];
+    $faceCount = intval($gate['face_count'] ?? 0);
+    return [
+        'accepted' => !empty($gate['accepted']),
+        'face_detected' => !empty($gate['face_detected']),
+        'face_count' => max(0, min(4, $faceCount)),
+        'in_frame' => !empty($gate['in_frame']),
+        'frontal_score' => max(0.0, min(1.0, floatval($gate['frontal_score'] ?? 0))),
+        'eyes_open_score' => max(0.0, min(1.0, floatval($gate['eyes_open_score'] ?? 0))),
+        'smile_score' => max(0.0, min(1.0, floatval($gate['smile_score'] ?? 0))),
+        'quality_score' => max(0.0, min(1.0, floatval($gate['quality_score'] ?? 0))),
+        'rejection_reason' => safe_key($gate['rejection_reason'] ?? ''),
     ];
 }
 
@@ -764,6 +804,8 @@ function persist_test(array $payload, array $report): array {
             'client_test_code' => $payload['client_test_code'] ?? '',
             'user' => $payload['user'],
             'consent' => $payload['consent'],
+            'images' => persistable_images($payload['images'] ?? []),
+            'processed_images' => persistable_images($payload['processed_images'] ?? []),
         ],
         'report' => $report,
     ];
@@ -771,6 +813,15 @@ function persist_test(array $payload, array $report): array {
     sync_google_sheet($record);
     cleanup_expired_tests();
     return ['test_id' => $id, 'expires_at' => gmdate('c', $expires)];
+}
+
+function persistable_images(array $images): array {
+    $out = [];
+    foreach (image_keys() as $key) {
+        $value = is_string($images[$key] ?? null) ? trim($images[$key]) : '';
+        $out[$key] = valid_image($value) ? $value : '';
+    }
+    return $out;
 }
 
 function google_sheets_webhook_url(): string {

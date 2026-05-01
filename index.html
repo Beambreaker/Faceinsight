@@ -6,7 +6,7 @@
   <title>FaceInsight Premium Generator</title>
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#081525">
-  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-0315">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260501-1745">
 </head>
 <body>
   <main class="fi-app" data-fi-app>
@@ -24,7 +24,7 @@
       </ol>
       <div class="fi-sidebar-note">
         <strong>Kamera-Ampel</strong>
-        <p>Rot: kein gutes Bild. Gelb: fast bereit. Gruen: Countdown startet. Auf modernen Handys wird zusaetzlich geprueft, ob ein Gesicht im Bild ist.</p>
+        <p>Rot: nicht bereit. Gelb: nachjustieren. Gruen: Gesicht und Ausdruck sind gueltig, der Ausloeser ist frei.</p>
       </div>
     </aside>
 
@@ -69,7 +69,7 @@
         <section class="fi-step" data-step="1">
           <span class="fi-kicker">Schritt 2</span>
           <h1>Frontfotos + optional Seitenprofil</h1>
-          <p class="fi-lead">Halte das Handy auf Augenhoehe direkt vor dein Gesicht. Erst neutral aufnehmen, dann in gleicher Position laecheln. Optional kannst du ein Seitenprofil hochladen fuer mehr Praezision.</p>
+          <p class="fi-lead">Halte das Handy auf Augenhoehe direkt vor dein Gesicht. Erst neutral ohne Laecheln aufnehmen, dann in gleicher Position sichtbar laecheln. Der Ausloeser wird erst aktiv, wenn der Rahmen gruen ist.</p>
 
           <div class="fi-phone-guide" aria-label="Kamerahaltung">
             <div class="fi-phone">
@@ -93,7 +93,7 @@
                 <div class="fi-face-ring"><span></span></div>
                 <div class="fi-frame-top"><strong>Front neutral</strong><small data-live-state="front_neutral">Kamera oder Upload waehlen</small></div>
                 <div class="fi-countdown" data-countdown="front_neutral" hidden>3</div>
-                <button class="fi-frame-capture" type="button" data-capture="front_neutral">Jetzt ausloesen</button>
+                <button class="fi-frame-capture" type="button" data-capture="front_neutral" disabled>Jetzt ausloesen</button>
               </div>
               <div class="fi-card-body">
                 <h2>1. Neutral</h2>
@@ -101,7 +101,7 @@
                 <div class="fi-quality" data-quality="front_neutral">Noch kein Foto</div>
                 <div class="fi-actions-row">
                   <button type="button" data-start-camera="front_neutral">Kamera</button>
-                  <button type="button" data-capture="front_neutral">Ausloesen</button>
+                  <button type="button" data-capture="front_neutral" disabled>Ausloesen</button>
                   <label>Upload <input type="file" accept="image/*" capture="user" data-upload="front_neutral"></label>
                 </div>
               </div>
@@ -115,7 +115,7 @@
                 <div class="fi-face-ring"><span></span></div>
                 <div class="fi-frame-top"><strong>Front laechelnd</strong><small data-live-state="front_smile">Kamera oder Upload waehlen</small></div>
                 <div class="fi-countdown" data-countdown="front_smile" hidden>3</div>
-                <button class="fi-frame-capture" type="button" data-capture="front_smile">Jetzt ausloesen</button>
+                <button class="fi-frame-capture" type="button" data-capture="front_smile" disabled>Jetzt ausloesen</button>
               </div>
               <div class="fi-card-body">
                 <h2>2. Laecheln</h2>
@@ -123,7 +123,7 @@
                 <div class="fi-quality" data-quality="front_smile">Noch kein Foto</div>
                 <div class="fi-actions-row">
                   <button type="button" data-start-camera="front_smile">Kamera</button>
-                  <button type="button" data-capture="front_smile">Ausloesen</button>
+                  <button type="button" data-capture="front_smile" disabled>Ausloesen</button>
                   <label>Upload <input type="file" accept="image/*" capture="user" data-upload="front_smile"></label>
                 </div>
               </div>
@@ -138,13 +138,13 @@
                 <div class="fi-face-ring"><span></span></div>
                 <div class="fi-frame-top"><strong>Seitenprofil (optional)</strong><small data-live-state="side_profile">Upload empfohlen</small></div>
                 <div class="fi-countdown" data-countdown="side_profile" hidden>3</div>
-                <button class="fi-frame-capture" type="button" data-capture="side_profile">Jetzt ausloesen</button>
+                <button class="fi-frame-capture" type="button" data-capture="side_profile" disabled>Jetzt ausloesen</button>
               </div>
               <div class="fi-card-footer">
                 <div class="fi-quality" data-quality="side_profile">Optional fuer hoehere Analysegenauigkeit</div>
                 <div class="fi-actions-row">
                   <button type="button" data-start-camera="side_profile">Kamera</button>
-                  <button type="button" data-capture="side_profile">Ausloesen</button>
+                  <button type="button" data-capture="side_profile" disabled>Ausloesen</button>
                   <label>Upload <input type="file" accept="image/*" capture="environment" data-upload="side_profile"></label>
                 </div>
               </div>
@@ -334,6 +334,6 @@
     </section>
   </main>
 
-  <script src="assets/js/faceinsight.js?v=20260501-0315"></script>
+  <script src="assets/js/faceinsight.js?v=20260501-1745"></script>
 </body>
 </html>

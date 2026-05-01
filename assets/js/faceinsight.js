@@ -19,10 +19,14 @@
     lastReport: null,
     faceDetector: null,
     faceDetectorReady: false,
+    faceLandmarker: null,
+    faceLandmarkerReady: false,
+    faceLandmarkerLoading: null,
     detecting: false,
     lastTestId: "",
     clientTestCode: "",
-    processedImages: {}
+    processedImages: {},
+    gates: {}
   };
 
   const $ = (selector, base = document) => base.querySelector(selector);
@@ -97,6 +101,37 @@
     return state.faceDetector;
   }
 
+  function getFaceLandmarker(){
+    if (state.faceLandmarkerReady) return Promise.resolve(state.faceLandmarker);
+    if (state.faceLandmarkerLoading) return state.faceLandmarkerLoading;
+    state.faceLandmarkerLoading = (async () => {
+      try {
+        const vision = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs");
+        const fileset = await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+        state.faceLandmarker = await vision.FaceLandmarker.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO",
+          numFaces: 2,
+          outputFaceBlendshapes: true
+        });
+      } catch (_) {
+        state.faceLandmarker = null;
+      }
+      state.faceLandmarkerReady = true;
+      return state.faceLandmarker;
+    })();
+    return state.faceLandmarkerLoading;
+  }
+
+  function warmupFaceLandmarker(){
+    getFaceLandmarker().then(detector => {
+      if (detector && state.activeKey) setCameraStatus("Kamera aktiv. Live-Gesichtspruefung ist bereit. Gruen bedeutet: Aufnahme ist freigegeben.");
+    }).catch(() => {});
+  }
+
   async function startCamera(key, reuseStream = false){
     const video = $(`[data-video="${key}"]`);
     const card = $(`[data-photo-card="${key}"]`);
@@ -124,10 +159,13 @@
         card.classList.add("is-live");
         card.classList.remove("has-image");
       }
+      state.gates[key] = gateResult(false, "starting", "Kamera startet.");
+      updateCaptureControls(key, false);
+      warmupFaceLandmarker();
       const detector = getFaceDetector();
-      const detectorCopy = detector ? "Gesichtserkennung aktiv." : "Live-Gesichtserkennung nicht im Browser verfuegbar, Qualitaet wird lokal geschaetzt.";
-      setFrameState(key, "yellow", key === "front_smile" ? "Laecheln, ruhig halten." : "Gesicht mittig in den Umriss bringen.");
-      setCameraStatus(`Kamera aktiv. ${detectorCopy} Rot, gelb, gruen zeigen die Aufnahmebereitschaft.`);
+      const detectorCopy = detector ? "Fallback-Gesichtserkennung aktiv." : "MediaPipe wird geladen.";
+      setFrameState(key, "yellow", key === "front_smile" ? "Bitte natuerlich laecheln. Ausloeser wird erst bei gueltigem Gesicht aktiv." : "Bitte frontal und neutral schauen. Ausloeser wird erst bei gueltigem Gesicht aktiv.");
+      setCameraStatus(`Kamera aktiv. ${detectorCopy} Keine Aufnahme ohne gueltiges Gesicht und passenden Ausdruck.`);
       state.loop = window.setInterval(() => {
         if (!state.detecting) evaluateLiveFrame(key);
       }, 320);
@@ -161,14 +199,22 @@
       const verdict = liveVerdict(key, quality, face, video.videoWidth, video.videoHeight);
 
       if (verdict.color !== "green") cancelCountdown(key);
+      state.gates[key] = verdict.gate || gateResult(false, "not_ready", verdict.message);
+      updateCaptureControls(key, verdict.color === "green");
       setFrameState(key, verdict.color, verdict.message);
-      if (verdict.color === "green" && !state.countdown) startCountdown(key);
     } finally {
       state.detecting = false;
     }
   }
 
   async function detectFace(video){
+    const landmarker = await getFaceLandmarker();
+    if (landmarker) {
+      try {
+        const result = landmarker.detectForVideo(video, performance.now());
+        return faceFromLandmarker(result, video.videoWidth, video.videoHeight);
+      } catch (_) {}
+    }
     const detector = getFaceDetector();
     if (!detector) return { supported: false, count: 0, box: null };
     try {
@@ -180,34 +226,124 @@
     }
   }
 
+  function faceFromLandmarker(result, width, height){
+    const landmarks = result && Array.isArray(result.faceLandmarks) ? result.faceLandmarks : [];
+    const first = landmarks[0] || [];
+    const box = first.length ? landmarksToBox(first, width, height) : null;
+    const blend = result && result.faceBlendshapes && result.faceBlendshapes[0] ? result.faceBlendshapes[0].categories || [] : [];
+    const score = name => {
+      const item = blend.find(category => category.categoryName === name);
+      return item ? Number(item.score || 0) : 0;
+    };
+    const smileScore = Math.max(score("mouthSmileLeft"), score("mouthSmileRight"), (score("mouthSmileLeft") + score("mouthSmileRight")) / 2);
+    const jawOpen = score("jawOpen");
+    const eyeBlink = (score("eyeBlinkLeft") + score("eyeBlinkRight")) / 2;
+    return {
+      supported: true,
+      source: "mediapipe",
+      count: landmarks.length,
+      box,
+      smileScore,
+      jawOpen,
+      eyesOpenScore: Math.max(0, Math.min(1, 1 - eyeBlink)),
+      frontalScore: estimateFrontalScore(first)
+    };
+  }
+
+  function landmarksToBox(points, width, height){
+    let minX = 1, maxX = 0, minY = 1, maxY = 0;
+    points.forEach(point => {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minY = Math.min(minY, point.y);
+      maxY = Math.max(maxY, point.y);
+    });
+    return { x: minX * width, y: minY * height, width: (maxX - minX) * width, height: (maxY - minY) * height, nx: minX, ny: minY, nw: maxX - minX, nh: maxY - minY };
+  }
+
+  function estimateFrontalScore(points){
+    if (!points || points.length < 264) return 0.72;
+    const leftEye = midpoint(points[33], points[133]);
+    const rightEye = midpoint(points[362], points[263]);
+    const nose = points[1] || points[4];
+    if (!leftEye || !rightEye || !nose) return 0.72;
+    const eyeCenter = midpoint(leftEye, rightEye);
+    const eyeDistance = Math.max(0.001, Math.abs(rightEye.x - leftEye.x));
+    const offset = Math.abs(nose.x - eyeCenter.x) / eyeDistance;
+    return Math.max(0, Math.min(1, 1 - offset * 1.8));
+  }
+
+  function midpoint(a, b){
+    if (!a || !b) return null;
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
+
   function liveVerdict(key, quality, face, width, height){
+    let rejection = "";
+    if (!face.supported) {
+      return { color: "red", message: "Live-Gesichtserkennung nicht verfuegbar. Bitte Browser aktualisieren oder Foto hochladen.", gate: gateResult(false, "face_detection_unavailable", "Live-Gesichtserkennung nicht verfuegbar.") };
+    }
+    if (face.count < 1) return { color: "red", message: "Noch kein Gesicht erkannt. Gesicht in den Umriss bringen.", gate: gateResult(false, "no_face", "Kein Gesicht erkannt.") };
+    if (face.count > 1) return { color: "red", message: "Bitte nur eine Person im Bild.", gate: gateResult(false, "multiple_faces", "Mehr als ein Gesicht erkannt.") };
     if (face.supported) {
-      if (face.count < 1) return { color: "red", message: "Noch kein Gesicht erkannt. Gesicht in den Umriss bringen." };
-      if (face.count > 1) return { color: "red", message: "Bitte nur eine Person im Bild." };
       const box = face.box;
       if (box) {
         const cx = (box.x + box.width / 2) / width;
         const cy = (box.y + box.height / 2) / height;
         const size = box.height / height;
-        if (cx < .34 || cx > .66 || cy < .24 || cy > .58) return { color: "yellow", message: "Gesicht mittiger und auf Augenhoehe halten." };
-        if (size < .30) return { color: "yellow", message: "Etwas naeher an die Kamera." };
-        if (size > .72) return { color: "yellow", message: "Etwas weiter weg, Gesicht vollstaendig im Rahmen." };
+        if (box.nx !== undefined && (box.nx < .015 || box.ny < .015 || box.nx + box.nw > .985 || box.ny + box.nh > .985)) {
+          return { color: "yellow", message: "Gesicht ist angeschnitten. Bitte vollstaendig in den Rahmen.", gate: gateResult(false, "face_cut_off", "Gesicht angeschnitten.", face) };
+        }
+        if (cx < .34 || cx > .66 || cy < .24 || cy > .62) return { color: "yellow", message: "Gesicht mittiger und auf Augenhoehe halten.", gate: gateResult(false, "not_centered", "Gesicht nicht mittig.", face) };
+        if (size < .30) return { color: "yellow", message: "Etwas naeher an die Kamera.", gate: gateResult(false, "too_far", "Gesicht zu klein.", face) };
+        if (size > .74) return { color: "yellow", message: "Etwas weiter weg, Gesicht vollstaendig im Rahmen.", gate: gateResult(false, "too_close", "Gesicht zu gross.", face) };
       }
+      if (face.eyesOpenScore !== undefined && face.eyesOpenScore < .45) return { color: "yellow", message: "Bitte Augen offen halten.", gate: gateResult(false, "eyes_not_open", "Augen nicht sicher offen.", face) };
+      if (face.frontalScore !== undefined && face.frontalScore < .58 && key !== "side_profile") return { color: "yellow", message: "Bitte Kopf frontaler zur Kamera ausrichten.", gate: gateResult(false, "not_frontal", "Kopf nicht frontal genug.", face) };
     }
 
     if (quality.brightness < 55 || quality.brightness > 218 || quality.sharpness < 5) {
-      return { color: "red", message: "Licht oder Schaerfe passt noch nicht. Handy ruhig und gerade halten." };
+      return { color: "red", message: "Licht oder Schaerfe passt noch nicht. Handy ruhig und gerade halten.", gate: gateResult(false, "quality_low", "Licht oder Schaerfe passt nicht.", face) };
     }
     if (quality.brightness < 78 || quality.brightness > 198 || quality.sharpness < 8 || quality.contrast < 18) {
-      return { color: "yellow", message: "Fast gut. Besseres Frontlicht oder etwas ruhiger halten." };
+      return { color: "yellow", message: "Fast gut. Besseres Frontlicht oder etwas ruhiger halten.", gate: gateResult(false, "quality_borderline", "Bildqualitaet fast bereit.", face) };
     }
-    if (key === "front_neutral" && quality.smileHint > 20) {
-      return { color: "yellow", message: "Bitte fuer dieses Foto neutral bleiben." };
+    const smileScore = typeof face.smileScore === "number" ? face.smileScore : Math.max(0, Math.min(1, quality.smileHint / 28));
+    if (typeof face.smileScore === "number") quality.smileHint = Number((face.smileScore * 28).toFixed(1));
+    if (key === "front_neutral" && (quality.smileHint > 10 || smileScore > .35)) {
+      rejection = "neutral_smile";
+      return { color: "yellow", message: "Bitte neutral in die Kamera schauen. Fuer dieses Bild kein Laecheln.", gate: gateResult(false, rejection, "Neutralbild zeigt Laecheln.", face, quality) };
     }
-    if (key === "front_smile" && quality.smileHint < 9) {
-      return { color: "yellow", message: "Bitte sichtbar laecheln, dann ruhig halten." };
+    if (key === "front_smile" && (quality.smileHint < 9 || smileScore < .60)) {
+      rejection = "smile_missing";
+      return { color: "yellow", message: "Bitte natuerlich laecheln. Das Laecheln muss klar erkennbar sein.", gate: gateResult(false, rejection, "Laecheln nicht klar genug.", face, quality) };
     }
-    return { color: "green", message: "Sehr gut. Countdown startet." };
+    return { color: "green", message: "Gueltig. Jetzt ausloesen.", gate: gateResult(true, null, "Aufnahme freigegeben.", face, quality) };
+  }
+
+  function gateResult(accepted, reason, message, face = {}, quality = {}){
+    return {
+      accepted: Boolean(accepted),
+      face_detected: Boolean(face.supported && face.count === 1),
+      face_count: face.supported ? Number(face.count || 0) : 0,
+      in_frame: !reason || !["face_cut_off", "not_centered", "too_far", "too_close"].includes(reason),
+      frontal_score: typeof face.frontalScore === "number" ? Number(face.frontalScore.toFixed(3)) : 0,
+      eyes_open_score: typeof face.eyesOpenScore === "number" ? Number(face.eyesOpenScore.toFixed(3)) : 0,
+      smile_score: typeof face.smileScore === "number" ? Number(face.smileScore.toFixed(3)) : Math.max(0, Math.min(1, Number(quality.smileHint || 0) / 28)),
+      quality_score: qualityScore(quality),
+      rejection_reason: reason || null,
+      message
+    };
+  }
+
+  function qualityScore(quality){
+    const brightness = Number(quality.brightness || 0);
+    const sharpness = Number(quality.sharpness || 0);
+    const contrast = Number(quality.contrast || 0);
+    const light = Math.max(0, Math.min(1, 1 - Math.abs(brightness - 140) / 140));
+    const crisp = Math.max(0, Math.min(1, sharpness / 14));
+    const contrastScore = Math.max(0, Math.min(1, contrast / 34));
+    return Number(((light + crisp + contrastScore) / 3).toFixed(3));
   }
 
   function sampleVideoQuality(video){
@@ -290,9 +426,17 @@
       setFrameState(key, "red", "Kein Kamerabild verfuegbar.");
       return;
     }
+    const gate = state.gates[key];
+    if (!gate || !gate.accepted) {
+      setFrameState(key, "yellow", gate && gate.message ? gate.message : "Bitte warten, bis der Rahmen gruen ist.");
+      updateCaptureControls(key, false);
+      return;
+    }
     const canvas = $(`[data-canvas="${key}"]`) || document.createElement("canvas");
     const data = drawNormalized(video, canvas, true);
     data.quality.source = automatic ? "auto_countdown" : "manual";
+    data.quality.gate = gate;
+    data.quality.smileHint = Math.max(Number(data.quality.smileHint || 0), Number(gate.smile_score || 0) * 28);
     stopCamera();
     saveImage(key, data.url, data.quality);
   }
@@ -306,6 +450,17 @@
       const canvas = $(`[data-canvas="${key}"]`) || document.createElement("canvas");
       const data = drawNormalized(img, canvas, false);
       data.quality.source = "upload";
+      data.quality.gate = {
+        accepted: true,
+        face_detected: false,
+        face_count: 0,
+        in_frame: true,
+        frontal_score: 0,
+        smile_score: Math.max(0, Math.min(1, Number(data.quality.smileHint || 0) / 28)),
+        quality_score: qualityScore(data.quality),
+        rejection_reason: "upload_not_live_verified",
+        message: "Upload wird serverseitig erneut geprueft."
+      };
       saveImage(key, data.url, data.quality);
     } catch (_) {
       setFrameState(key, "red", "Bild konnte nicht gelesen werden.");
@@ -434,6 +589,13 @@
     }
     if (quality) quality.textContent = message || "";
     if (live) live.textContent = message || "";
+  }
+
+  function updateCaptureControls(key, enabled){
+    $$(`[data-capture="${key}"]`).forEach(button => {
+      button.disabled = !enabled;
+      button.setAttribute("aria-disabled", enabled ? "false" : "true");
+    });
   }
 
   function fileToDataUrl(file){
@@ -1021,6 +1183,7 @@
   $$("[data-start-camera]").forEach(button => button.addEventListener("click", () => startCamera(button.dataset.startCamera)));
   $$("[data-capture]").forEach(button => button.addEventListener("click", () => capture(button.dataset.capture, false)));
   $$("[data-upload]").forEach(input => input.addEventListener("change", () => handleUpload(input)));
+  imageKeys.forEach(key => updateCaptureControls(key, false));
   const printButton = $("[data-print]");
   const resetButton = $("[data-reset]");
   const shareButton = $("[data-share]");

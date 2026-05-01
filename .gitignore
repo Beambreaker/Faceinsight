@@ -3,6 +3,11 @@
 /live_*.html
 /live_*.js
 /sftp_check.txt
+.env
+.env.*
+!.env.example
 *.log
+_qa-screenshots/
+_remote-backups/
 
 /api/config.php

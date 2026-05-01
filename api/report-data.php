@@ -44,6 +44,8 @@ respond([
     'created_at' => $record['created_at'] ?? '',
     'expires_at' => $record['expires_at'] ?? '',
     'user' => $record['payload']['user'] ?? [],
+    'product_type' => $record['mode'] ?? 'premium',
+    'photos' => report_photos($record['payload'] ?? []),
     'report' => $record['report'],
 ]);
 
@@ -62,6 +64,24 @@ function share_secret(): string {
     $env = getenv('FACEINSIGHT_SHARE_TOKEN_SECRET');
     if (is_string($env) && $env !== '') return $env;
     return '';
+}
+
+function report_photos(array $payload): array {
+    $images = is_array($payload['images'] ?? null) ? $payload['images'] : [];
+    $processed = is_array($payload['processed_images'] ?? null) ? $payload['processed_images'] : [];
+
+    return [
+        'neutral' => safe_photo((string)($processed['front_neutral'] ?? $images['front_neutral'] ?? '')),
+        'smile' => safe_photo((string)($processed['front_smile'] ?? $images['front_smile'] ?? '')),
+        'profile' => safe_photo((string)($processed['side_profile'] ?? $images['side_profile'] ?? '')),
+    ];
+}
+
+function safe_photo(string $value): string {
+    $value = trim($value);
+    if ($value === '') return '';
+    if (!preg_match('#^data:image/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$#i', $value)) return '';
+    return $value;
 }
 
 function respond(array $data, int $status = 200): void {
