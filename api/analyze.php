@@ -247,7 +247,7 @@ function run_process_stage(array $payload): array {
             'source_path' => 'payload:' . $slot,
             'output_path' => $processed !== '' ? 'payload:processed_' . $slot : 'payload:' . $slot,
             'output_data_url' => $processed,
-            'operations' => $processed !== '' ? ['bg_remove', 'tone_balance', 'subtle_scene'] : ['original_retained'],
+            'operations' => $processed !== '' ? ['neutral_backdrop_replace', 'global_tone_only'] : ['original_retained'],
             'identity_preservation_score' => round($identity, 3),
             'artifact_risk_score' => round($artifact, 3),
             'confidence' => round(max(0.0, min(1.0, ($identity + (1.0 - $artifact)) / 2.0)), 3),
@@ -1041,6 +1041,18 @@ function openai_fast_report(array $payload, string $key): array {
     ];
     $report = normalize_report(is_array($data['report'] ?? null) ? $data['report'] : [], $payload, $preflight);
     $portrait = best_report_portrait($payload);
+    if ($portrait === '') {
+        $smile = $payload['images']['front_smile'] ?? '';
+        if (valid_image($smile)) {
+            $portrait = openai_premium_portrait($smile, $key, 'front_smile');
+        }
+        if ($portrait === '') {
+            $neutral = $payload['images']['front_neutral'] ?? '';
+            if (valid_image($neutral)) {
+                $portrait = openai_premium_portrait($neutral, $key, 'front_neutral');
+            }
+        }
+    }
     if ($portrait !== '') {
         $report['visual_asset']['premium_portrait_image'] = $portrait;
     }
@@ -1306,11 +1318,12 @@ function openai_premium_portrait(string $dataUrl, string $key, string $slot = 'f
     $expression = $slot === 'front_neutral'
         ? 'neutral expression, closed relaxed mouth'
         : 'natural smile expression with the original visible teeth if present';
-    $prompt = 'FaceInsight premium export: REMOVE ONLY the original environment/room/background behind the subject. Replace it with a flat, neutral dark navy studio backdrop (no scenery, no props). '
-        . 'CRITICAL — DO NOT EDIT THE FACE OR BODY: keep the exact same photograph of the person — identity, apparent age, facial proportions, asymmetry, wrinkles, pores, skin texture, moles, beard stubble, hairline, ears, nose, eyes, lips, teeth must remain unchanged. '
-        . 'Forbidden: beautifying, de-aging, skin smoothing, reshaping, slimming, makeup, teeth whitening, stylization, illustration, cartoon, painting, or any facial geometry change. '
-        . 'Allowed only on the whole frame (including face exposure): very subtle global white balance and mild contrast so the photo reads clearly on the new backdrop — still photorealistic. '
-        . 'Full head visible, centered. Expression locked: ' . $expression . '. No text, no watermark.';
+    $prompt = 'Task: background replacement only. Remove the entire original environment behind the person (room, furniture, outdoor scene). Replace with a flat, seamless neutral studio backdrop (solid mid-gray or dark navy, no patterns, no scenery, no props, no text). '
+        . 'IDENTITY LOCK — The face and body must remain the unmodified photograph of this person: same age appearance, proportions, asymmetry, skin texture, pores, wrinkles, moles, facial hair, hairline, ears, nose, eyes, lips, jaw, teeth as in the source image. '
+        . 'Do not: beautify, de-age, slim the face, alter proportions, smooth skin, remove blemishes, change makeup, whiten teeth, add symmetry, sharpen facial features separately, stylize, illustrate, cartoonize, or paint. '
+        . 'Color/exposure: at most one global adjustment (white balance / mild contrast) applied evenly across the whole image for readability on the new backdrop — no separate facial retouching or skin masks. '
+        . 'Composition: keep full head, centered. Expression must stay: ' . $expression . '. Photorealistic output. No watermark. '
+        . 'Final check: output must still be recognizably the same individual as the upload; only non-subject background pixels may be replaced by the neutral backdrop.';
     return openai_image_edit($dataUrl, $prompt, $key);
 }
 
