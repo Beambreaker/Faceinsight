@@ -82,18 +82,23 @@
       color:#f1e5c5;
       font-weight:800;
     }
-    .reel-copy{padding:2px 14px 8px}
+    .reel-copy{padding:2px 14px 8px;text-align:center}
     .reel-copy h2{
       margin:0 0 8px;
       font-size:22px;
       line-height:1.15;
       color:#f6e2b2;
+      text-align:center;
+      overflow-wrap:anywhere;
+      text-wrap:balance;
     }
     .reel-copy p{
       margin:0;
       color:var(--ink);
       font-size:14px;
       line-height:1.4;
+      text-align:center;
+      overflow-wrap:anywhere;
     }
     .reel-pills{
       display:grid;
@@ -231,17 +236,17 @@
     <header class="reel-head">
       <img src="assets/img/logo-wordmark.png" alt="FaceInsight">
       <h1>Social Reel Steckbrief</h1>
-      <p>Kurzfassung fuer schnelles Teilen</p>
+      <p>Kurzfassung f&uuml;r schnelles Teilen</p>
     </header>
 
     <section class="reel-hero">
       <span class="reel-badge">Claude AI Analyse  8.7 / 10</span>
-      <img src="assets/img/user-smile.png" alt="Profilfoto laechelnd">
+      <img src="assets/img/user-smile.png" alt="Profilfoto l&auml;chelnd">
     </section>
 
     <section class="reel-copy">
-      <h2>Souveraen, praesent und authentisch.</h2>
-      <p>Ruhige Geometrie, klare Symmetrie und ein natuerliches Laecheln sorgen fuer eine vertrauensvolle, starke Aussenwirkung.</p>
+      <h2>Souver&auml;n, pr&auml;sent und authentisch.</h2>
+      <p>Ruhige Geometrie, klare Symmetrie und ein nat&uuml;rliches L&auml;cheln sorgen f&uuml;r eine vertrauensvolle, starke Au&szlig;enwirkung.</p>
     </section>
 
     <div class="reel-pills" aria-label="Kernaussagen">
@@ -269,12 +274,12 @@
             <p id="reel-lookalike-title">Sean Connery</p>
           </div>
         </div>
-        <p id="reel-lookalike-copy">Modellbasierte visuelle hnlichkeit auf Basis Kontur, Symmetrie und Mimiklinie.</p>
+        <p id="reel-lookalike-copy">Modellbasierte visuelle &Auml;hnlichkeit auf Basis Kontur, Symmetrie und Mimiklinie.</p>
       </article>
     </section>
 
     <section class="reel-cta" aria-label="Premium Call to Action">
-      <p>Traust du dich auch die Wahrheit ber deine optische Wirkung zu erfahren</p>
+      <p>Traust du dich, die Wahrheit &uuml;ber deine optische Wirkung zu erfahren?</p>
       <a href="#" data-paywall-link>Jetzt Premium-Steckbrief freischalten</a>
     </section>
 
@@ -285,7 +290,7 @@
       <a href="#" data-share-facebook target="_blank" rel="noopener noreferrer">Facebook</a>
     </nav>
 
-      <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollstaendige Premium-Report enthaelt alle Detailmodule.</p>
+      <p class="reel-footer">Dies ist eine kurze visuelle Share-Version. Der vollst&auml;ndige Premium-Report enth&auml;lt alle Detailmodule.</p>
   </article>
 
     <script>
@@ -306,13 +311,6 @@
       var apiBase = "./api/share-token.php";
       var reportApiBase = "./api/report-data.php";
       var signedGuestUrl = null;
-      function agentDebug(payload){
-        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify(payload)}).catch(()=>{});
-        fetch('./api/debug-log.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
-      }
-      // #region agent log
-      agentDebug({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:init',message:'reel init params',data:{mode:mode,ref:ref,hasExp:!!exp,hasSig:!!sig},timestamp:Date.now()});
-      // #endregion
 
       function normalizeTid(value){
         var clean = String(value || "").trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "");
@@ -377,9 +375,6 @@
           var res = await fetch(verifyUrl, { credentials: "same-origin" });
           if (!res.ok) return false;
           var json = await res.json();
-          // #region agent log
-          fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H4',location:'steckbrief-reel.html:verifyGuest',message:'guest verify result',data:{status:res.status,valid:!!(json&&json.valid===true)},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
           return !!(json && json.valid === true);
         } catch (_) {
           return false;
@@ -409,7 +404,7 @@
         var header = report.report_header || {};
         var title = document.querySelector(".reel-copy h2");
         var summary = document.querySelector(".reel-copy p");
-        if (title) title.textContent = header.overall_type || report.share_profile || "FaceInsight Profil";
+        if (title) title.textContent = String(header.overall_type || report.share_profile || "FaceInsight Profil").replace(/\bCharakterkopf\b/gi, "").trim();
         if (summary) summary.textContent = report.impact || report.critical || "";
         var portrait = document.querySelector(".reel-hero img");
         var references = report.reference && Array.isArray(report.reference.items) ? report.reference.items : [];
@@ -417,20 +412,17 @@
         var portraitImage = "";
         var premium = report.visual_asset && report.visual_asset.premium_portrait_image;
         var userPhoto = photos.smile || photos.neutral || photos.profile;
-        if (premium) {
-          portraitSource = "visual_asset";
-          portraitImage = premium;
-        } else if (userPhoto) {
+        if (userPhoto) {
           portraitSource = "photos";
           portraitImage = userPhoto;
+        } else if (premium) {
+          portraitSource = "visual_asset";
+          portraitImage = premium;
         } else {
           portraitSource = "fallback_default";
           portraitImage = "assets/img/user-smile.png";
         }
         if (portrait && portraitImage) portrait.src = portraitImage;
-        // #region agent log
-        agentDebug({sessionId:'b7e216',runId:'run-post-fix',hypothesisId:'H2',location:'steckbrief-reel.html:renderStoredReport',message:'report image availability',data:{hasPortraitImage:!!portraitImage,portraitSource:portraitSource,hasReferenceItems:!!(report.reference&&Array.isArray(report.reference.items)&&report.reference.items.length)},timestamp:Date.now()});
-        // #endregion
         var badge = document.querySelector(".reel-badge");
         if (badge) badge.textContent = "FaceInsight KI Analyse | " + (header.visual_age_estimate || "optische Einordnung");
 
@@ -445,9 +437,12 @@
         var aTitle = document.getElementById("reel-archetype-title");
         var aCopy = document.getElementById("reel-archetype-copy");
         var aImg = document.getElementById("reel-archetype-image");
-        if (aTitle) aTitle.textContent = archetype.label || "Archetyp";
+        if (aTitle) aTitle.textContent = String(archetype.label || "Archetyp").replace(/\bCharakterkopf\b/gi, "").trim();
         if (aCopy) aCopy.textContent = archetype.description || "";
-        if (aImg && archetype.image_url) aImg.src = archetype.image_url;
+        if (aImg) {
+          aImg.onerror = function(){ this.onerror = null; this.src = "assets/img/archetype-modern.jpg"; };
+          aImg.src = archetype.image_url || "assets/img/archetype-modern.jpg";
+        }
 
         var refs = references;
         var first = refs[0] || {};
@@ -461,23 +456,14 @@
 
       async function loadStoredReport(){
         if (!normalizeTid(ref)) {
-          // #region agent log
-          agentDebug({sessionId:'b7e216',runId:'run-post-fix',hypothesisId:'H5',location:'steckbrief-reel.html:loadStoredReport',message:'missing tid in reel request',data:{mode:mode,rawRef:params.get("ref")||"",rawTid:params.get("tid")||""},timestamp:Date.now()});
-          // #endregion
           lockMissingReport("Bitte \u00f6ffne das Reel \u00fcber den g\u00fcltigen Link aus dem Premium-Steckbrief.");
           return false;
         }
         var reportUrl = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
         if (mode === "guest") reportUrl += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
-        // #region agent log
-        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:loadStoredReport',message:'fetch report start',data:{reportUrl:reportUrl},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         try {
           var res = await fetch(reportUrl, { credentials: "same-origin" });
           var json = await res.json().catch(function(){ return null; });
-          // #region agent log
-          fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H1',location:'steckbrief-reel.html:loadStoredReport',message:'fetch report result',data:{status:res.status,ok:res.ok,jsonSuccess:!!(json&&json.success),hasReport:!!(json&&json.report),testId:(json&&json.test_id)||''},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
           if (!res.ok || !json || !json.success || !json.report) {
             lockMissingReport((json && json.message) || "Report nicht gefunden. Bitte pr\u00fcfe die Test-ID.");
             return false;
@@ -549,9 +535,6 @@
         }
       ];
       function applyDemoFallback(){
-        // #region agent log
-        fetch('http://127.0.0.1:7623/ingest/0164a66e-1ef3-4eac-a1a9-cda3b953ec1d',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b7e216'},body:JSON.stringify({sessionId:'b7e216',runId:'run-pre-fix',hypothesisId:'H3',location:'steckbrief-reel.html:applyDemoFallback',message:'demo fallback activated',data:{demoParam:params.get('demo')||''},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         var a = archetypes[Math.floor(Math.random() * archetypes.length)];
         var l = lookalikes[Math.floor(Math.random() * lookalikes.length)];
         var aTitle = document.getElementById("reel-archetype-title");

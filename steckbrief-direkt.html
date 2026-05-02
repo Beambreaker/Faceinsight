@@ -432,10 +432,11 @@
     .fi-mini-card h3{
       margin:0 0 10px;
       color:var(--fi-text-gold);
-      font-family:Georgia,"Times New Roman",serif;
-      font-size:24px;
+      font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      font-size:22px;
+      font-weight:900;
       line-height:1.05;
-      letter-spacing:.4px;
+      letter-spacing:.01em;
     }
     .fi-mini-card p,
     .fi-mini-card small{
@@ -520,6 +521,7 @@
       line-height:1.35;
     }
     .fi-compare-points li{margin-bottom:4px}
+    .fi-test-id{display:inline-block;font-size:11px;letter-spacing:.02em;opacity:.84}
 
     .fi-sim-person{
       display:grid;
@@ -787,47 +789,40 @@
     @media (max-width:620px){.fi-hero-v2{padding:14px}.fi-hero-title-v2 h1{font-size:28px;letter-spacing:.04em}.fi-hero-logo-v2{justify-content:center}.fi-report-top-v2 .fi-top-report-actions{justify-content:center}.fi-report-top-v2 .fi-top-report-actions a{flex:1 1 150px;font-size:11px;justify-content:center;min-width:0;text-align:center;white-space:normal}.fi-fact-row-v2{grid-template-columns:1fr}.fi-photo-suite-v2{grid-template-columns:1fr}.fi-shot-card-v2 img{height:220px}.fi-shot-main-v2 img{height:300px}.fi-impact-analysis-v2 h2{font-size:24px}.fi-impact-analysis-v2 p{font-size:15px}}
 
 
-    /* Premium report top v3: calmer editorial layout, less dashboard noise. */
+    /* Premium report top v3: calmer editorial layout, darker marine + controlled gold glow. */
     .fi-report-top-v3,.fi-report-top-v3 *{box-sizing:border-box;min-width:0}
     .fi-report-top-v3{display:grid;gap:18px;margin:0 0 18px;color:#edf6ff;overflow:hidden}
-    .fi-hero-v3{background:linear-gradient(135deg,#071426 0%,#0c2d4f 54%,#071426 100%);border:1px solid rgba(230,190,104,.46);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.36);overflow:hidden;padding:22px;position:relative}
-    .fi-hero-v3:before{background:radial-gradient(circle at 10% 0%,rgba(79,158,244,.32),transparent 30%),radial-gradient(circle at 95% 10%,rgba(238,196,104,.18),transparent 30%);content:"";inset:0;pointer-events:none;position:absolute}
+    .fi-hero-v3{background:linear-gradient(145deg,#05101f 0%,#06203a 54%,#040d1a 100%);border:1px solid rgba(230,190,104,.52);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 24px 70px rgba(0,0,0,.5),0 0 26px rgba(83,161,255,.24);overflow:hidden;padding:22px;position:relative}
+    .fi-hero-v3:before{background:linear-gradient(90deg,rgba(75,152,236,.12),transparent 48%,rgba(238,196,104,.10));content:"";inset:0;pointer-events:none;position:absolute}
     .fi-hero-v3-inner{align-items:center;display:grid;gap:18px;grid-template-columns:auto 1fr auto;position:relative;z-index:1}
     .fi-brand-v3{align-items:center;display:flex;gap:12px;white-space:nowrap}
+    .fi-brand-v3 img{height:42px;max-width:230px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(83,161,255,.28)) drop-shadow(0 0 12px rgba(241,201,112,.24))}
     .fi-brand-v3 strong{color:#fff7df;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:32px;font-weight:900;letter-spacing:-.01em;line-height:1}
     .fi-brand-v3 span{color:#f0bf59}
-    .fi-logo-orb-v3{
-      background:radial-gradient(circle at 50% 46%,#fff 0 14%,#f0bf59 15% 20%,#f8fbff 21% 54%,#f0bf59 55% 59%,#f8fbff 60%)!important;
-      border:1px solid rgba(241,201,112,.72)!important;
-      box-shadow:0 0 16px rgba(83,161,255,.35), 0 0 10px rgba(241,201,112,.25);
-      display:inline-block;
-      height:58px;
-      width:58px;
-    }
-    .fi-logo-orb-v3:before{
-      background:#f8fbff!important;
-      border:2px solid #f0bf59!important;
-    }
+    .fi-logo-orb-v3{display:none!important}
     .fi-title-v3{text-align:center}.fi-title-v3 h1{color:#fff7df;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:44px;font-weight:900;letter-spacing:.01em;line-height:1.02;margin:0;text-transform:none}.fi-title-v3 p{color:#d8e9fb;font-size:14px;font-weight:800;margin:9px 0 0}
     .fi-actions-v3{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.fi-actions-v3 a{align-items:center;background:rgba(6,22,40,.74);border:1px solid rgba(151,190,229,.32);border-radius:999px;color:#dcebff;display:inline-flex;font-size:11px;font-weight:950;letter-spacing:.04em;min-height:38px;padding:10px 13px;text-decoration:none;text-transform:uppercase}.fi-actions-v3 a:first-child{background:linear-gradient(135deg,#f3cb72,#c79437);border-color:rgba(255,226,151,.68);color:#061522}
-    .fi-fact-row-v3{display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:1}.fi-fact-row-v3 .fi-fact-card{background:rgba(3,17,32,.62);border:1px solid rgba(142,184,226,.30);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);display:grid;gap:12px;grid-template-columns:42px 1fr;margin:0;min-height:82px;padding:14px}.fi-fact-row-v3 .fi-icon{border-color:rgba(238,196,104,.56);color:#f0bf59;height:42px;width:42px}.fi-fact-row-v3 span{color:#9ebfe1;font-size:11px;font-weight:950;letter-spacing:.09em;text-transform:uppercase}.fi-fact-row-v3 strong{color:#fff0bf;display:block;font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.06;margin-top:4px;overflow-wrap:anywhere}
-    .fi-stage-v3{display:grid;gap:18px;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);align-items:start}
-    .fi-main-portrait-v3{background:linear-gradient(180deg,#0a223d,#061525);border:1px solid rgba(238,196,104,.45);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);margin:0;overflow:hidden;padding:12px;position:relative}
-    .fi-main-portrait-v3:before{background:radial-gradient(circle at 50% 14%,rgba(83,161,255,.2),transparent 38%);content:"";inset:0;pointer-events:none;position:absolute}
+    .fi-fact-row-v3{display:grid;gap:10px;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:1}.fi-fact-row-v3 .fi-fact-card{background:rgba(3,17,32,.62);border:1px solid rgba(142,184,226,.30);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);display:grid;gap:12px;grid-template-columns:42px 1fr;margin:0;min-height:82px;padding:14px}.fi-fact-row-v3 .fi-icon{border-color:rgba(238,196,104,.56);color:#f0bf59;height:42px;width:42px}.fi-fact-row-v3 span{color:#9ebfe1;font-size:11px;font-weight:950;letter-spacing:.09em;text-transform:uppercase}.fi-fact-row-v3 strong{color:#fff0bf;display:block;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:20px;line-height:1.06;margin-top:4px;overflow-wrap:anywhere}
+    .fi-stage-v3{display:grid;gap:16px;grid-template-columns:1fr;align-items:start}
+    .fi-main-portrait-v3{background:linear-gradient(180deg,#061629,#041122);border:1px solid rgba(238,196,104,.45);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.38),0 0 24px rgba(83,161,255,.22);margin:0;overflow:hidden;padding:16px;position:relative;display:grid;justify-items:center}
+    .fi-main-portrait-v3:before{background:radial-gradient(circle at 50% 30%,rgba(83,161,255,.18),transparent 52%);content:"";inset:0;pointer-events:none;position:absolute}
     .fi-main-portrait-v3 img{
-      background:#071b31;
-      border-radius:16px;
+      background:radial-gradient(circle at 50% 28%, rgba(105,169,245,.2), rgba(4,18,34,.96) 74%);
+      border-radius:50%;
+      border:1px solid rgba(241,201,112,.62);
+      box-shadow:0 0 0 2px rgba(88,166,255,.46), 0 0 30px rgba(88,166,255,.42), 0 0 20px rgba(241,201,112,.3);
       display:block;
-      height:380px;
-      max-height:43vh;
+      height:min(72vw,360px);
+      max-height:360px;
+      max-width:360px;
       object-fit:cover!important;
-      object-position:center 18%!important;
+      object-position:center 14%!important;
       position:relative;
-      width:100%
+      width:min(72vw,360px)
     }
-    .fi-main-portrait-v3 figcaption{align-items:center;background:linear-gradient(90deg,rgba(6,21,38,.94),rgba(10,43,73,.88));border:1px solid rgba(238,196,104,.24);border-radius:14px;color:#ffe5a5;display:flex;font-size:13px;font-weight:950;justify-content:center;letter-spacing:.08em;margin-top:10px;min-height:42px;text-transform:uppercase}
-    .fi-story-v3{display:grid;gap:14px}.fi-impact-v3{background:linear-gradient(180deg,rgba(8,31,56,.96),rgba(4,16,31,.98));border:1px solid rgba(142,184,226,.34);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);padding:24px}.fi-impact-v3 span{color:#f0bf59;display:block;font-size:12px;font-weight:950;letter-spacing:.16em;text-transform:uppercase}.fi-impact-v3 h2{color:#fff3c8;font-family:Georgia,"Times New Roman",serif;font-size:36px;line-height:1;margin:9px 0 14px;text-transform:uppercase}.fi-impact-v3 p{color:#edf6ff;font-size:18px;font-weight:760;line-height:1.52;margin:0}
-    .fi-lens-grid-v3{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) minmax(320px,.82fr)}.fi-analysis-card-v3,.fi-score-card-v3{background:linear-gradient(180deg,rgba(8,31,56,.97),rgba(4,16,31,.99));border:1px solid rgba(142,184,226,.34);border-radius:22px;color:#edf6ff;padding:22px}.fi-analysis-card-v3 h2,.fi-score-card-v3 h2{color:#fff3c8;font-family:Georgia,"Times New Roman",serif;font-size:26px;letter-spacing:.03em;margin:0 0 12px;text-transform:uppercase}.fi-analysis-card-v3 .fi-attr-level{background:rgba(255,255,255,.035);border:1px solid rgba(142,184,226,.24);border-radius:12px;color:#dbeafa;font-size:13px;margin:0 0 14px;padding:10px 12px}.fi-analysis-card-v3 .fi-analysis-list{display:grid;gap:10px;grid-template-columns:1fr 1fr}.fi-analysis-card-v3 .fi-feature-item{background:rgba(255,255,255,.025);border:1px solid rgba(142,184,226,.16);border-radius:14px;display:grid;gap:10px;grid-template-columns:32px 1fr;margin:0;padding:10px}.fi-analysis-card-v3 .fi-feature-item i{border-color:rgba(238,196,104,.55);color:#f0bf59;height:30px;width:30px}.fi-analysis-card-v3 .fi-feature-item strong{color:#ffe6aa;font-size:14px}.fi-analysis-card-v3 .fi-feature-item p{color:#cfe0f1;font-size:12px;line-height:1.34;margin:2px 0 0}.fi-score-card-v3 .fi-score-scale{color:#cfe0f1;display:block;font-size:12px;line-height:1.35;margin:0 0 12px}.fi-score-card-v3 .fi-profile-metrics{display:grid;gap:9px}.fi-score-card-v3 .fi-profile-metric{background:rgba(255,255,255,.035);border:1px solid rgba(142,184,226,.20);border-radius:14px;padding:10px 11px}.fi-score-card-v3 .fi-profile-metric strong{color:#edf6ff;font-size:13px}.fi-score-card-v3 .fi-star-score{align-items:center;display:grid;gap:10px;grid-template-columns:1fr auto;margin-top:6px}.fi-score-card-v3 .fi-star-score b{color:#ffe6aa;font-size:14px;white-space:nowrap}.fi-score-card-v3 footer{background:rgba(7,25,45,.7);border:1px solid rgba(142,184,226,.22);border-radius:14px;color:#cfe0f1;display:grid;gap:10px;grid-template-columns:42px 1fr;margin-top:12px;padding:12px}.fi-confidence-v3{background:rgba(5,19,36,.76);border:1px solid rgba(238,196,104,.28);border-radius:14px;color:#d8e9fb;font-size:12px;line-height:1.45;padding:11px 12px}
+    .fi-main-portrait-v3 figcaption{align-items:center;background:linear-gradient(90deg,rgba(6,21,38,.94),rgba(10,43,73,.88));border:1px solid rgba(238,196,104,.24);border-radius:14px;color:#ffe5a5;display:flex;font-size:13px;font-weight:950;justify-content:center;letter-spacing:.03em;margin-top:10px;min-height:42px;text-transform:none}
+    .fi-story-v3{display:grid;gap:14px}.fi-story-v3-inline{margin-top:2px}.fi-impact-v3{background:linear-gradient(180deg,rgba(8,31,56,.96),rgba(4,16,31,.98));border:1px solid rgba(142,184,226,.34);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 18px rgba(83,161,255,.18);padding:24px}.fi-impact-v3 span{color:#f0bf59;display:block;font-size:12px;font-weight:950;letter-spacing:.16em;text-transform:uppercase}.fi-impact-v3 h2{color:#fff3c8;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:34px;font-weight:900;line-height:1.08;margin:9px 0 14px;text-transform:none}.fi-impact-v3 p{color:#edf6ff;font-size:18px;font-weight:760;line-height:1.52;margin:0}
+    .fi-lens-grid-v3{display:grid;gap:18px;grid-template-columns:minmax(0,1fr) minmax(320px,.82fr)}.fi-analysis-card-v3,.fi-score-card-v3{background:linear-gradient(180deg,rgba(8,31,56,.97),rgba(4,16,31,.99));border:1px solid rgba(142,184,226,.34);border-radius:22px;color:#edf6ff;padding:22px}.fi-analysis-card-v3 h2,.fi-score-card-v3 h2{color:#fff3c8;font-family:Aptos,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:26px;font-weight:900;letter-spacing:.02em;margin:0 0 12px;text-transform:none}.fi-analysis-card-v3 .fi-attr-level{background:rgba(255,255,255,.035);border:1px solid rgba(142,184,226,.24);border-radius:12px;color:#dbeafa;font-size:13px;margin:0 0 14px;padding:10px 12px}.fi-analysis-card-v3 .fi-analysis-list{display:grid;gap:10px;grid-template-columns:1fr 1fr}.fi-analysis-card-v3 .fi-feature-item{background:rgba(255,255,255,.025);border:1px solid rgba(142,184,226,.16);border-radius:14px;display:grid;gap:10px;grid-template-columns:32px 1fr;margin:0;padding:10px}.fi-analysis-card-v3 .fi-feature-item i{border-color:rgba(238,196,104,.55);color:#f0bf59;height:30px;width:30px}.fi-analysis-card-v3 .fi-feature-item strong{color:#ffe6aa;font-size:14px}.fi-analysis-card-v3 .fi-feature-item p{color:#cfe0f1;font-size:12px;line-height:1.34;margin:2px 0 0}.fi-score-card-v3 .fi-score-scale{color:#cfe0f1;display:block;font-size:12px;line-height:1.35;margin:0 0 12px}.fi-score-card-v3 .fi-profile-metrics{display:grid;gap:9px}.fi-score-card-v3 .fi-profile-metric{background:rgba(255,255,255,.035);border:1px solid rgba(142,184,226,.20);border-radius:14px;padding:10px 11px}.fi-score-card-v3 .fi-profile-metric strong{color:#edf6ff;font-size:13px}.fi-score-card-v3 .fi-star-score{align-items:center;display:grid;gap:10px;grid-template-columns:1fr auto;margin-top:6px}.fi-score-card-v3 .fi-star-score b{color:#ffe6aa;font-size:14px;white-space:nowrap}.fi-score-card-v3 footer{background:rgba(7,25,45,.7);border:1px solid rgba(142,184,226,.22);border-radius:14px;color:#cfe0f1;display:grid;gap:10px;grid-template-columns:42px 1fr;margin-top:12px;padding:12px}.fi-confidence-v3{background:rgba(5,19,36,.76);border:1px solid rgba(238,196,104,.28);border-radius:14px;color:#d8e9fb;font-size:12px;line-height:1.45;padding:11px 12px}
     .fi-score-card-v3 .fi-star-score{grid-template-columns:1fr auto}
     .fi-score-card-v3 .fi-stars{
       --fill:0%;
@@ -869,8 +864,8 @@
       text-overflow:ellipsis;
       line-height:1.1;
     }
-    @media (max-width:1060px){.fi-hero-v3-inner{grid-template-columns:1fr;text-align:center}.fi-brand-v3,.fi-actions-v3{justify-content:center}.fi-fact-row-v3{grid-template-columns:1fr 1fr}.fi-stage-v3,.fi-lens-grid-v3{grid-template-columns:1fr}.fi-main-portrait-v3 img{height:360px;max-height:none}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr 1fr}}
-    @media (max-width:620px){.fi-report-top-v3{gap:14px}.fi-hero-v3{border-radius:18px;padding:18px 14px}.fi-title-v3 h1{font-size:30px;letter-spacing:.01em}.fi-title-v3 p{font-size:13px}.fi-brand-v3 strong{font-size:30px}.fi-actions-v3 a{flex:1 1 150px;justify-content:center;text-align:center}.fi-fact-row-v3{grid-template-columns:1fr}.fi-main-portrait-v3{border-radius:18px}.fi-main-portrait-v3 img{height:280px;max-height:none}.fi-impact-v3,.fi-analysis-card-v3,.fi-score-card-v3{border-radius:18px;padding:18px}.fi-impact-v3 h2{font-size:28px}.fi-impact-v3 p{font-size:16px}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score b{justify-self:start}.fi-mobile-content,.fi-workspace,.fi-premium-sheet{max-width:100%;overflow-x:hidden}}
+    @media (max-width:1060px){.fi-hero-v3-inner{grid-template-columns:1fr;text-align:center}.fi-brand-v3,.fi-actions-v3{justify-content:center}.fi-fact-row-v3{grid-template-columns:1fr 1fr}.fi-stage-v3,.fi-lens-grid-v3{grid-template-columns:1fr}.fi-main-portrait-v3 img{height:min(68vw,330px);max-height:330px}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr 1fr}}
+    @media (max-width:620px){.fi-report-top-v3{gap:14px}.fi-hero-v3{border-radius:18px;padding:18px 14px}.fi-title-v3 h1{font-size:30px;letter-spacing:.01em}.fi-title-v3 p{font-size:13px}.fi-brand-v3 img{height:34px}.fi-actions-v3 a{flex:1 1 150px;justify-content:center;text-align:center}.fi-fact-row-v3{grid-template-columns:1fr}.fi-main-portrait-v3{border-radius:18px}.fi-main-portrait-v3 img{height:min(72vw,290px);max-height:290px}.fi-impact-v3,.fi-analysis-card-v3,.fi-score-card-v3{border-radius:18px;padding:18px}.fi-impact-v3 h2{font-size:26px}.fi-impact-v3 p{font-size:16px}.fi-analysis-card-v3 .fi-analysis-list{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score{grid-template-columns:1fr}.fi-score-card-v3 .fi-star-score b{justify-self:start}.fi-mobile-content,.fi-workspace,.fi-premium-sheet{max-width:100%;overflow-x:hidden}}
     @media (max-width:760px){
       .fi-mobile-content{padding:10px}
       .fi-custom-main,.fi-deep-grid,.fi-profile-main-grid,.fi-profile-lower-grid{grid-template-columns:1fr!important;gap:12px!important}
@@ -887,9 +882,9 @@
 
 
     /* v3 hard overrides: keep the portrait premium-sized even against legacy report image rules. */
-    .fi-report-top-v3 .fi-main-portrait-v3 > img{height:380px!important;max-height:380px!important;object-fit:contain!important;object-position:center center!important}
-    @media (max-width:1060px){.fi-report-top-v3 .fi-main-portrait-v3 > img{height:320px!important;max-height:320px!important}}
-    @media (max-width:620px){.fi-report-top-v3 .fi-main-portrait-v3 > img{height:280px!important;max-height:280px!important}.fi-report-top-v3 .fi-main-portrait-v3{padding:10px}.fi-report-top-v3 .fi-main-portrait-v3 figcaption{font-size:11px;min-height:36px}.fi-report-top-v3 .fi-impact-v3 h2{font-size:26px}.fi-report-top-v3 .fi-impact-v3 p{font-size:15px}}
+    .fi-report-top-v3 .fi-main-portrait-v3 > img{height:min(72vw,360px)!important;max-height:360px!important;object-fit:cover!important;object-position:center 14%!important}
+    @media (max-width:1060px){.fi-report-top-v3 .fi-main-portrait-v3 > img{height:min(68vw,330px)!important;max-height:330px!important}}
+    @media (max-width:620px){.fi-report-top-v3 .fi-main-portrait-v3 > img{height:min(72vw,290px)!important;max-height:290px!important}.fi-report-top-v3 .fi-main-portrait-v3{padding:10px}.fi-report-top-v3 .fi-main-portrait-v3 figcaption{font-size:11px;min-height:36px}.fi-report-top-v3 .fi-impact-v3 h2{font-size:26px}.fi-report-top-v3 .fi-impact-v3 p{font-size:15px}}
 
     /* v3 legacy reset: old report-photo rules used absolute captions/min-heights. */
     .fi-report-top-v3 .fi-main-portrait-v3{display:grid!important;gap:10px!important;height:auto!important;min-height:0!important;align-content:start!important}
@@ -901,7 +896,7 @@
   <div class="fi-mobile-shell">
     <div class="fi-mobile-status" aria-hidden="true"><i></i></div>
     <header class="fi-mobile-header">
-      <span class="fi-logo-orb fi-logo-orb-v3" aria-hidden="true"></span>
+      <img src="assets/img/logo-wordmark.png" alt="FaceInsight Logo">
       <div>
         <div class="fi-mobile-title">FaceInsight Premium</div>
         <div class="fi-mobile-sub">Mobile Analyseansicht</div>
@@ -914,9 +909,9 @@
         <section class="fi-report-top-v3" aria-label="Premium Steckbrief Oberteil">
           <header class="fi-hero-v3">
             <div class="fi-hero-v3-inner">
-              <div class="fi-brand-v3"><span class="fi-logo-orb fi-logo-orb-v3" aria-hidden="true"></span><strong>Face<span>Insight</span></strong></div>
+              <div class="fi-brand-v3"><img src="assets/img/logo-wordmark.png" alt="FaceInsight Logo"></div>
               <div class="fi-title-v3">
-                <h1>Sven der Ruhige</h1>
+                <h1>Sven, der Ruhige</h1>
                 <p>Premium Steckbrief</p>
               </div>
               <nav class="fi-actions-v3" aria-label="Report Schnellaktionen">
@@ -931,6 +926,15 @@
             <article class="fi-fact-card"><i class="fi-icon fi-icon-age" aria-hidden="true"></i><div><span>Optisches Alter</span><strong>-</strong></div></article>
             <article class="fi-fact-card"><i class="fi-icon fi-icon-star" aria-hidden="true"></i><div><span>Gesamteindruck</span><strong>-</strong></div></article>
             <article class="fi-fact-card"><i class="fi-icon fi-icon-shield" aria-hidden="true"></i><div><span>Archetyp</span><strong data-report-archetype-short>-</strong></div></article>
+          </section>
+
+          <section class="fi-story-v3 fi-story-v3-inline">
+            <article class="fi-impact-analysis fi-impact-v3">
+              <span>KI-Ergebnis</span>
+              <h2 data-title-identity>Wie wirke ich auf andere?</h2>
+              <p>Die Zusammenfassung wird aus strukturierten Reportdaten geladen. Bei niedriger Confidence wird transparent darauf hingewiesen.</p>
+            </article>
+            <div class="fi-confidence-v3" data-confidence-note>Confidence-Hinweise erscheinen hier, falls die KI unsicher ist.</div>
           </section>
 
           <section class="fi-lens-grid-v3">
@@ -956,15 +960,6 @@
               <img alt="Premium Portrait" src="assets/img/user-smile.png">
               <figcaption>FaceInsight  Analyse</figcaption>
             </figure>
-
-            <section class="fi-story-v3">
-              <article class="fi-impact-analysis fi-impact-v3">
-                <span>KI-Ergebnis</span>
-                <h2 data-title-identity>Wie wirke ich auf andere?</h2>
-                <p>Die Zusammenfassung wird aus strukturierten Reportdaten geladen. Bei niedriger Confidence wird transparent darauf hingewiesen.</p>
-              </article>
-              <div class="fi-confidence-v3" data-confidence-note>Confidence-Hinweise erscheinen hier, falls die KI unsicher ist.</div>
-            </section>
           </section>
         </section>
 
@@ -985,6 +980,16 @@
 
           <section class="fi-mini-card">
             <h3>Normal vs. l&auml;chelnd</h3>
+            <div class="fi-ns-compare" aria-label="Normal und lächelnd im Vergleich">
+              <figure>
+                <img src="assets/img/user-neutral.png" alt="Normales Portrait" data-ns-neutral>
+                <figcaption>Normal</figcaption>
+              </figure>
+              <figure>
+                <img src="assets/img/user-smile.png" alt="L&auml;chelndes Portrait" data-ns-smile>
+                <figcaption>L&auml;chelnd</figcaption>
+              </figure>
+            </div>
             <ul class="fi-compare-points">
               <li>Das L&auml;cheln erh&ouml;ht die wahrgenommene Zug&auml;nglichkeit deutlich.</li>
               <li>Augenpartie und Mundlinie &ouml;ffnen sich, ohne die Geometrie zu verlieren.</li>
@@ -1116,7 +1121,7 @@
         content.innerHTML = [
           '<section class="fi-workspace">',
           '<article class="fi-premium-sheet fi-premium-profile" style="margin:16px auto; padding:22px">',
-          '<header class="fi-sheet-header fi-profile-header"><h1>Gast-Link abgelaufen</h1><p>Dieser Link ist ungltig oder nicht mehr aktiv.</p></header>',
+          '<header class="fi-sheet-header fi-profile-header"><h1>Gast-Link abgelaufen</h1><p>Dieser Link ist ungültig oder nicht mehr aktiv.</p></header>',
           '<section class="fi-report-card" style="padding:18px">',
           '<h2>Test-ID: ' + ref + '</h2>',
           '<p>Bitte einen neuen Gast-Link aus dem Owner-Modus erzeugen und erneut teilen.</p>',
@@ -1172,6 +1177,12 @@
           .replace(/Ã„/g, "\u00C4").replace(/Ã–/g, "\u00D6").replace(/Ãœ/g, "\u00DC")
           .replace(/ÃŸ/g, "\u00DF")
           .replace(/Einschtzung/g, "Einsch\u00E4tzung")
+          .replace(/laechel/gi, "lächel")
+          .replace(/aehnlich/gi, "ähnlich")
+          .replace(/praesent/gi, "präsent")
+          .replace(/souveraen/gi, "souverän")
+          .replace(/fuer/gi, "für")
+          .replace(/\bcharakterkopf\b/gi, "")
           .replace(/hnlichkeit/g, "\u00C4hnlichkeit")
           .replace(/Lcheln/g, "L\u00E4cheln")
           .replace(/Prsenz/g, "Pr\u00E4senz")
@@ -1201,6 +1212,29 @@
         return number > 10 ? Math.max(0, Math.min(10, number / 10)) : Math.max(0, Math.min(10, number));
       }
 
+      function stripEncodedNoise(value){
+        return fixText(String(value || ""))
+          .replace(/&#\d+;?/g, " ")
+          .replace(/&[a-z]+;?/gi, " ")
+          .replace(/\uFFFD/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function cleanArchetypeLabel(value, firstName){
+        var label = stripEncodedNoise(value || "der Ruhige");
+        label = label.replace(/\bcharakterkopf\b/gi, "").trim();
+        if (firstName) {
+          var first = String(firstName).trim();
+          if (first) {
+            var rx = new RegExp("^" + first.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*", "i");
+            label = label.replace(rx, "").trim();
+          }
+        }
+        if (!label) label = "der Ruhige";
+        return label.replace(/\s{2,}/g, " ");
+      }
+
       function renderStars(){
         document.querySelectorAll(".fi-stars[data-score]").forEach(function(node){
           var raw = Number(node.getAttribute("data-score"));
@@ -1217,18 +1251,19 @@
         if (!report) return;
         var header = report.report_header || {};
         var reportId = meta.test_id || ref || "-";
-        var archetypeLabel = (report.archetype && report.archetype.label) ? String(report.archetype.label) : "der Ruhige";
+        var firstName = stripEncodedNoise(header.first_name || "Nutzer");
+        var archetypeLabel = cleanArchetypeLabel(report.archetype && report.archetype.label, firstName);
         var level = (meta.product_type || header.product_type || "Premium").toString();
         var factValues = document.querySelectorAll(".fi-profile-facts .fi-fact-card strong");
         text(factValues[0], level.charAt(0).toUpperCase() + level.slice(1));
-        text(factValues[1], header.visual_age_estimate || "-");
-        text(factValues[2], header.overall_type || report.share_profile || "-");
+        text(factValues[1], stripEncodedNoise(header.visual_age_estimate || "-"));
+        text(factValues[2], stripEncodedNoise(header.overall_type || report.share_profile || "-"));
         text(factValues[3], archetypeLabel);
         text(document.querySelector("[data-report-id]"), reportId);
         text(document.querySelector("[data-report-level]"), level.charAt(0).toUpperCase() + level.slice(1));
-        text(document.querySelector(".fi-impact-analysis p"), report.impact || "");
-        var identityTitle = (header.first_name || "Nutzer") + " " + archetypeLabel;
-        text(document.querySelector("[data-title-identity]"), identityTitle);
+        text(document.querySelector(".fi-impact-analysis p"), stripEncodedNoise(report.impact || ""));
+        var identityTitle = firstName + ", " + archetypeLabel;
+        text(document.querySelector("[data-title-identity]"), "Wie wirke ich auf andere?");
         text(document.querySelector(".fi-title-v3 h1"), identityTitle);
         text(document.querySelector(".fi-title-v3 p"), "Premium Steckbrief");
         text(document.querySelector("[data-report-archetype-short]"), archetypeLabel);
@@ -1238,7 +1273,11 @@
         var portraitImage = photos.smile || photos.neutral || (report.visual_asset && report.visual_asset.premium_portrait_image);
         if (portrait && portraitImage) portrait.src = portraitImage;
         var date = meta.created_at ? new Date(meta.created_at).toLocaleDateString("de-DE") : new Date().toLocaleDateString("de-DE");
-        text(document.querySelector(".fi-portrait-clean figcaption"), (header.first_name || "FaceInsight") + "  Analyse vom " + date);
+        text(document.querySelector(".fi-portrait-clean figcaption"), firstName + " · Analyse vom " + date);
+        var nsNeutral = document.querySelector("[data-ns-neutral]");
+        var nsSmile = document.querySelector("[data-ns-smile]");
+        if (nsNeutral) nsNeutral.src = photos.neutral || photos.smile || portraitImage || "assets/img/user-neutral.png";
+        if (nsSmile) nsSmile.src = photos.smile || photos.neutral || portraitImage || "assets/img/user-smile.png";
 
         var scores = Array.isArray(report.scores) ? report.scores : [];
         var avg = scores.length ? scores.reduce(function(sum, item){ return sum + scoreToTen(item.value); }, 0) / scores.length : 0;
@@ -1246,27 +1285,24 @@
 
         var observations = Array.isArray(report.observations) ? report.observations.slice(0, 12) : [];
         var iconForArea = function(area){
-  var key = String(area || "").toLowerCase();
-  if (key.indexOf("auge") >= 0) return "\u25C9";
-  if (key.indexOf("nase") >= 0) return "\u25B2";
-  if (key.indexOf("mund") >= 0 || key.indexOf("lipp") >= 0 || key.indexOf("zahn") >= 0) return "\u25C6";
-  if (key.indexOf("haut") >= 0 || key.indexOf("falte") >= 0) return "\u25CC";
-  if (key.indexOf("haar") >= 0 || key.indexOf("bart") >= 0) return "\u2726";
-  if (key.indexOf("ohr") >= 0) return "\u2B22";
-  return "\u25CF";
-};
-var cleanAreaLabel = function(area){
-  return String(area || "")
-    .replace(/&#\d+;?/g, "")
-    .replace(/&[a-z]+;/gi, "")
-    .replace(/^[^A-Za-z0-9]+/, "")
-    .trim() || "Analyse";
-};
-var obsTarget = document.querySelector(".fi-analysis-list");
+          var key = String(area || "").toLowerCase();
+          if (key.indexOf("auge") >= 0) return "👁";
+          if (key.indexOf("symmet") >= 0 || key.indexOf("geometr") >= 0) return "◍";
+          if (key.indexOf("nase") >= 0) return "△";
+          if (key.indexOf("mund") >= 0 || key.indexOf("lipp") >= 0 || key.indexOf("zahn") >= 0) return "◡";
+          if (key.indexOf("haut") >= 0 || key.indexOf("falte") >= 0) return "✦";
+          if (key.indexOf("haar") >= 0 || key.indexOf("bart") >= 0) return "✂";
+          if (key.indexOf("ohr") >= 0) return "◖";
+          return "•";
+        };
+        var cleanAreaLabel = function(area){
+          return stripEncodedNoise(area || "Analyse").replace(/^[^A-Za-zÄÖÜäöü0-9]+/, "").trim() || "Analyse";
+        };
+        var obsTarget = document.querySelector(".fi-analysis-list");
         if (obsTarget && observations.length) {
           obsTarget.innerHTML = observations.map(function(item){
             var area = cleanAreaLabel(item.area || "Analyse");
-            return '<article class="fi-feature-item"><i data-icon="' + escapeHtml(iconForArea(area)) + '"></i><div><strong>' + escapeHtml(area) + '</strong><p>' + escapeHtml(item.finding || "") + '</p></div></article>';
+            return '<article class="fi-feature-item"><i data-icon="' + escapeHtml(iconForArea(area)) + '"></i><div><strong>' + escapeHtml(area) + '</strong><p>' + escapeHtml(stripEncodedNoise(item.finding || "")) + '</p></div></article>';
           }).join("");
         }
 
@@ -1286,8 +1322,9 @@ var obsTarget = document.querySelector(".fi-analysis-list");
             aImg.onerror = function(){ this.onerror = null; this.src = "assets/img/archetype-modern.jpg"; };
             aImg.src = archetype.image_url || "assets/img/archetype-modern.jpg";
           }
-          text(archetypeCard.querySelector("strong"), archetype.label || "Archetyp");
-          text(archetypeCard.querySelector("p"), archetype.description || "");
+          text(archetypeCard.querySelector("strong"), "Primärprofil: " + archetypeLabel);
+          text(archetypeCard.querySelector("small"), "Sekundär: Der Beobachter");
+          text(archetypeCard.querySelector("p"), stripEncodedNoise(archetype.description || ""));
         }
 
         var refs = report.reference && Array.isArray(report.reference.items) ? report.reference.items.slice(0, 2) : [];
@@ -1297,15 +1334,15 @@ var obsTarget = document.querySelector(".fi-analysis-list");
           if (!card) return;
           var img = card.querySelector("img");
           if (img && item.image_url) img.src = item.image_url;
-          text(card.querySelector("strong"), item.label || "Referenz");
+          text(card.querySelector("strong"), stripEncodedNoise(item.label || "Referenz"));
           text(card.querySelector("b"), Math.max(50, Math.round(Number(item.percent || 0))) + "% Ähnlichkeit");
-          text(card.querySelector("small"), item.note || "");
+          text(card.querySelector("small"), stripEncodedNoise(item.note || ""));
         });
 
-        text(document.querySelector(".fi-profile-final p"), report.critical || report.share_profile || "");
-        text(document.querySelector(".fi-profile-final strong"), header.overall_type || "");
+        text(document.querySelector(".fi-profile-final p"), stripEncodedNoise(report.critical || report.share_profile || ""));
+        text(document.querySelector(".fi-profile-final strong"), stripEncodedNoise(header.overall_type || ""));
         var footer = document.querySelector(".fi-footer-row p");
-        if (footer) footer.innerHTML = escapeHtml(fixText(report.legal_note || "Visuelle Einschätzung anhand von Fotos.")).replace(/\n/g, "<br>") + "<br>Test-ID: " + escapeHtml(meta.test_id || ref);
+        if (footer) footer.innerHTML = escapeHtml(fixText(report.legal_note || "Visuelle Einschätzung anhand von Fotos.")).replace(/\n/g, "<br>") + "<br><span class=\"fi-test-id\">Test-ID: " + escapeHtml(meta.test_id || ref) + "</span>";
         renderStars();
       }
 
