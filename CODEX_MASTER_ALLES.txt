@@ -1,0 +1,142 @@
+================================================================================
+EIN-KOPIEREN: GESAMTER PROMPT FÜR CODEX (alles von dir erledigen lassen)
+================================================================================
+
+Kopiere ab der nächsten Sektion „ROLLE“ bis zum Ende in deine Codex-Session.
+(Prefill: Passe NUR die Platzhalter in eckigen Klammern an, falls du schon weißt,
+wo der Generator live liegt — sonst lässt du sie leer und Codex fragt nach.)
+
+--------------------------------------------------------------------------------
+ROLLE
+--------------------------------------------------------------------------------
+
+Du bist der verantwortliche Agent für Finalisierung, Datei-Upload und
+Live-Validierung des FaceInsight-Standalone-Generators. Du arbeitest im Repo
+unter dem Ordner „standalone“ (Generator-Root). Du führst alle Schritte selbst
+aus, die technisch möglich sind: Shell-Befehle lokal, Upload per vom Nutzer
+genannter Methode, HTTP-Tests gegen die Live-Basis-URL. Du fragst den Nutzer
+nur dort nach, wo du ohne Zugangsdaten oder ohne öffentliche URL nicht
+weiterkommst. Du gibst am Ende einen klaren Abschlussbericht (ohne Secrets).
+
+--------------------------------------------------------------------------------
+PROJEKT-KONTEXT (KURZ)
+--------------------------------------------------------------------------------
+
+- Frontend: index.html, steckbrief-direkt.html, steckbrief-reel.html,
+  steckbrief-premium-preview.html; Assets unter assets/css|js/faceinsight.*
+- API: api/analyze.php (inkl. GET ?health=1), api/report-data.php,
+  api/share-token.php, api/auth-tokens.php; Vorlage api/config.sample.php
+- WordPress: Optional server/faceinsight-generator-route.php — leitet u. a.
+  /kostenlosen-report-starten/ nach content_url('/faceinsight-generator/')
+  um. Deploy des Standalone-Bundles typischerweise nach:
+  wp-content/faceinsight-generator/ (relativ zur WP-Installation).
+
+--------------------------------------------------------------------------------
+PLATZHALTER VOM NUTZER (zu Beginn abfragen oder hier eintragen)
+--------------------------------------------------------------------------------
+
+LIVE_BASE_URL     = [ z.B. https://example.de/wp-content/faceinsight-generator/ ]
+DEPLOY_ART        = [ ftp | sftp | rsync | ssh | manuell ]
+DEPLOY_DETAILS    = [ Host, Benutzer, Remote-Pfad — NUR im Chat, nicht in Dateien ]
+WP_ROUTE_UPDATE   = [ ja | nein ] — soll faceinsight-generator-route.php ins Theme
+                    oder MU-Plugin?
+
+--------------------------------------------------------------------------------
+VERBOTE (STRICT)
+--------------------------------------------------------------------------------
+
+- Keine Secrets in Git committen, keine Passwörter in Repo-Dateien schreiben.
+- api/config.local.php und produktive api/config.php auf dem Server NICHT durch
+  Repo-Dateien überschreiben.
+- api/debug-log.php, LOG_*.txt, data/tests/, _remote-backups/ nicht als
+  „Release“ deployen (außer Nutzer fordert debug-log ausdrücklich und gesichert).
+- Keine Zugangsdaten in Antworten wiederholen; nur „verbunden / Upload ok“.
+
+--------------------------------------------------------------------------------
+DEINE AUFGABEN — ALLES DER REIHE NACH
+--------------------------------------------------------------------------------
+
+1) Repository
+   - cd in den standalone-Ordner des geklonten Repos.
+   - git fetch && git status -sb && git log -1 --oneline
+   - Erwartung: sauberer Stand; master mit origin/master aligned (ggf. git pull).
+
+2) Lokale Qualität (schnell)
+   - php -l auf: api/analyze.php, api/auth-tokens.php, api/report-data.php,
+     api/share-token.php, api/config.sample.php
+   - Bei Syntaxfehler: Meldung, kein Deploy.
+
+3) Release-Dateiliste festhalten und abgleichen
+   Folgende Pfade relativ zum standalone-Root müssen für Live identisch zum
+   Commit sein (außer Server-config):
+   - index.html
+   - steckbrief-direkt.html
+   - steckbrief-reel.html
+   - steckbrief-premium-preview.html
+   - assets/css/faceinsight.css
+   - assets/js/faceinsight.js
+   - api/auth-tokens.php, api/analyze.php, api/report-data.php, api/share-token.php
+   - api/config.sample.php
+   Optional bei WP-Integration: server/faceinsight-generator-route.php an der
+   vom Nutzer gewünschten Stelle einbinden (Anleitung ausgeben, nicht raten).
+
+4) Server-Konfiguration (nur Anweisung, kein Secret ausgeben)
+   - Prüfen: Existiert api/config.php auf dem Server mit OPENAI/Keys über ENV
+     oder lokale config — Nur Hinweis an Nutzer wenn health openai_key_present
+     false ist.
+
+5) Deploy ausführen
+   - Mit DEPLOY_ART und DEPLOY_DETAILS vom Nutzer alle Release-Dateien in
+     LIVE_BASE_URL-Zielpfad auf dem Host legen (Ordnerstruktur beibehalten:
+     api/, assets/, HTML im Root des Generator-Webroots).
+   - Excludes strikt einhalten (kein config.local vom Rechner, kein überschreiben
+     der Server-config.php mit lokaler Entwicklungsdatei).
+   - rsync-Beispiel (nach Abstimmung --dry-run zuerst):
+     rsync -avz --dry-run ... dann ohne dry-run mit excludes für config.local.php,
+     config.php, debug-log.php, .git, data/tests, _remote-backups
+
+6) Live-Smoke A — Health
+   - curl -sS "${LIVE_BASE_URL}api/analyze.php?health=1"
+   - Erwartung: JSON success true, service faceinsight-analyze.
+   - Auf Produktion: capabilities.curl und curl_file sollten true sein. Wenn
+     false: konkrete Hosting-Anweisung (PHP-Extension curl aktivieren).
+
+7) Live-Smoke B — Generator
+   - Browser: LIVE_BASE_URL index öffnen (Cache-Bypass / Hard-Reload).
+   - Flow: Bild hochladen → Analyse → Steckbrief sichtbar; Konsole ohne kritische
+     Fehler.
+
+8) Live-Smoke C — Owner-Zugriff
+   - Nach erfolgreichem Lauf: Owner-Link / Steckbrief mit owner_access_sig wie
+     von der App gesetzt öffnen — Report-Daten müssen laden.
+
+9) Live-Smoke D — Gast
+   - Geteilten Link mit gültigem Share-Token testen — Zugriff wie spezifiziert.
+
+10) Live-Smoke E — Ablehnung
+    - Abgelaufenes oder gefälschtes Token — kein Report-Inhalt, erwartete
+      Fehlerbehandlung.
+
+11) Cache
+    - HTML nutzt asset query ?v=20260502-1500. Wenn Live alte CSS/JS zeigt:
+      allen HTML dieselbe neue Version geben, nur HTML erneut deployen.
+
+12) Abschlussbericht an den Nutzer
+    - Datum/Uhrzeit Deploy
+    - Kurz: git SHA deployed
+    - Health JSON Kurzfassung (curl true/false)
+    - Welche Smoke-Schritte grün/rot
+    - Offene Punkte (z. B. WP-Route noch nicht eingespielt)
+
+--------------------------------------------------------------------------------
+WENN DU BLOCKIERT BIST
+--------------------------------------------------------------------------------
+
+- Fehlende LIVE_BASE_URL oder Deploy-Zugang → eine konkrete Frage stellen.
+- Kein curl auf Server → Hosting-Schritte skizzieren, nicht aufgeben.
+- Unklare WP-Route → Nutzer fragen, ob route-PHP bereits liegt und wo MU-Plugin
+  oder Theme liegt.
+
+================================================================================
+Ende — ab „ROLLE“ bis hier in Codex einfügen.
+================================================================================
