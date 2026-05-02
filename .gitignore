@@ -9,5 +9,6 @@
 *.log
 _qa-screenshots/
 _remote-backups/
+_release/
 
 /api/config.php

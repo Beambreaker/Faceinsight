@@ -1,9 +1,13 @@
 ================================================================================
 CODEX — Deploy & Finalisierung FaceInsight (Standalone)
 ================================================================================
-Kontext: Repo-Pfad lokal: .../active/standalone. Branch master = origin (Commit
-01a5e16 bzw. aktueller HEAD). Der Cursor/IDE-Agent kann hier KEIN Live-Deploy
-und KEINE Host-Authentifizierung ausführen — das ist deine Aufgabe.
+Kontext: Vollstaendiger Deploy-Inhalt = Inhalt des Git-Ordners
+
+  ...\FaceInsight-Projekt-Hauptverzeichnis\_clean-workspace\active\standalone
+
+(auf dem Server: gleicher Dateibaum, z. B. unter wp-content/faceinsight-generator/)
+Branch master = origin (aktueller HEAD). Der Cursor/IDE-Agent kann hier kein
+Live-Deploy und keine Host-Authentifizierung ausfuehren — das ist deine Aufgabe.
 
 --------------------------------------------------------------------------------
 WAS DER IDE-AGENT NICHT / NICHT ZUVERLÄSSIG ERLEDIGEN KANN
@@ -24,7 +28,7 @@ EXKLUSIONEN BEIM UPLOAD (NIEMALS ÜBERSCHREIBEN ODER MIT COMMITTEN)
 - api/debug-log.php     (nur bei Bedarf und abgesichert)
 - LOG_*.txt, *.log
 - data/tests/
-- _remote-backups/, _qa-screenshots/
+- _remote-backups/, _qa-screenshots/, _release/
 
 --------------------------------------------------------------------------------
 TODO-LISTE FÜR CODEX (DER REIHE NACH AUSFÜHREN)
@@ -61,7 +65,7 @@ TODO-LISTE FÜR CODEX (DER REIHE NACH AUSFÜHREN)
     Beispiel rsync (Platzhalter anpassen; Test mit --dry-run zuerst):
       rsync -avz --exclude 'config.local.php' --exclude 'config.php' \
         --exclude 'debug-log.php' --exclude '.git' --exclude 'data/tests' \
-        --exclude '_remote-backups' \
+        --exclude '_remote-backups' --exclude '_release' \
         ./ USER@HOST:/pfad/zum/faceinsight-generator/
     Oder: Dateien aus Abschnitt 2 manuell im FTP-Client hochladen.
 

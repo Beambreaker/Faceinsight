@@ -1,6 +1,16 @@
 # FaceInsight Standalone Generator
 
-Dies ist die eigenstaendige Generator-App fuer den FaceInsight Premium-Steckbrief. Der Ordner kann per FileZilla/SFTP auf IONOS hochgeladen werden, z. B. nach:
+Dies ist die eigenstaendige Generator-App fuer den FaceInsight Premium-Steckbrief.
+
+## Lokaler Arbeitsordner (Windows) und Server
+
+- **Git-Repository und Generator-Root** (hier entwickeln, hier committen):
+
+  `C:\Users\xhibi\Documents\FaceInsight-Projekt-Hauptverzeichnis\_clean-workspace\active\standalone`
+
+- Die Ebene `FaceInsight-Projekt-Hauptverzeichnis` enthält nur Zwischenordner; **auf dem Webserver liegt der komplette Inhalt dieses `standalone`-Ordners** (Ordner `api/`, `assets/`, `server/`, alle `*.html` usw.) — typischerweise unter dem WordPress-Pfad unten, **ohne** den Windows-Zwischenpfad `_clean-workspace\active\standalone` im URL.
+
+Der Ordner kann per FileZilla/SFTP auf IONOS hochgeladen werden, z. B. nach:
 
 ```text
 /faceinsight-generator/

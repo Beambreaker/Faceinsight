@@ -7,12 +7,25 @@ Kopiere ab der nächsten Sektion „ROLLE“ bis zum Ende in deine Codex-Session
 wo der Generator live liegt — sonst lässt du sie leer und Codex fragt nach.)
 
 --------------------------------------------------------------------------------
+LOKALER PROJEKTPFAD (WINDOWS) = DEPLOY-INHALT 1:1
+--------------------------------------------------------------------------------
+
+Git- und Arbeits-Root (Generator-Root, alles von hier bauen/commits/deployen):
+
+  C:\Users\xhibi\Documents\FaceInsight-Projekt-Hauptverzeichnis\_clean-workspace\active\standalone
+
+Der Ordner „FaceInsight-Projekt-Hauptverzeichnis“ oberhalb davon ist nur
+Struktur; **auf dem Server spiegelt sich der komplette Inhalt von „standalone“**
+(alle Unterordner und Dateien), z. B. nach wp-content/faceinsight-generator/ —
+**ohne** die Windows-Pfade _clean-workspace\active\standalone im Ziel.
+
+--------------------------------------------------------------------------------
 ROLLE
 --------------------------------------------------------------------------------
 
 Du bist der verantwortliche Agent für Finalisierung, Datei-Upload und
 Live-Validierung des FaceInsight-Standalone-Generators. Du arbeitest im Repo
-unter dem Ordner „standalone“ (Generator-Root). Du führst alle Schritte selbst
+unter dem Ordner „standalone“ (Generator-Root, voller Dateibaum siehe oben). Du führst alle Schritte selbst
 aus, die technisch möglich sind: Shell-Befehle lokal, Upload per vom Nutzer
 genannter Methode, HTTP-Tests gegen die Live-Basis-URL. Du fragst den Nutzer
 nur dort nach, wo du ohne Zugangsdaten oder ohne öffentliche URL nicht
@@ -48,8 +61,8 @@ VERBOTE (STRICT)
 - Keine Secrets in Git committen, keine Passwörter in Repo-Dateien schreiben.
 - api/config.local.php und produktive api/config.php auf dem Server NICHT durch
   Repo-Dateien überschreiben.
-- api/debug-log.php, LOG_*.txt, data/tests/, _remote-backups/ nicht als
-  „Release“ deployen (außer Nutzer fordert debug-log ausdrücklich und gesichert).
+- api/debug-log.php, LOG_*.txt, data/tests/, _remote-backups/, _release/ nicht
+  als „Release“ deployen (außer Nutzer fordert debug-log ausdrücklich und gesichert).
 - Keine Zugangsdaten in Antworten wiederholen; nur „verbunden / Upload ok“.
 
 --------------------------------------------------------------------------------

@@ -1,0 +1,28 @@
+================================================================================
+FaceInsight Standalone — Fertigstellung (mit Cursor / ohne Codex)
+================================================================================
+
+ZIEL
+  Generator ist deployt, Live-Smokes sind gruen, Doku stimmt mit Realitaet
+  ueberein.
+
+WAS „KOMPLETTER ORDNERBAUM“ HEISST
+  - Gemeint ist der **volle Inhalt** des Git-Ordners „standalone“ (siehe README),
+    nicht die Windows-Elternordner darueber.
+  - Auf dem Server: gleiche Struktur wie lokal unter …\active\standalone\
+    (api, assets, server, HTML-Dateien, data wie noetig).
+
+LETZTE SCHRITTE (CHECKLISTE)
+  [ ] 1. git pull (falls Team), dann lokal: php -l auf api/analyze.php etc.
+  [ ] 2. Deploy: **gesamten** Inhalt von „standalone“ hochladen — ausnehmen:
+        api/config.local.php, produktive api/config.php (nicht ueberschreiben),
+        .git, _remote-backups, _qa-screenshots, _release, *.log, debug-log.php
+  [ ] 3. Live: GET …/api/analyze.php?health=1  → success, curl true auf Host
+  [ ] 4. Live: index → Upload → Analyse → Steckbrief
+  [ ] 5. Live: Owner-Link, gueltiger Gast-Link, abgelaufener/falscher Gast blockt
+
+DATEIEN FUER SPÄTER (Codex)
+  CODEX_MASTER_ALLES.txt     — voller Automatisierungs-Prompt
+  CODEX_DEPLOY_PROMPT.txt    — kompakte Deploy-TODO
+
+================================================================================
