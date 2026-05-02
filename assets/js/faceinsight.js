@@ -24,6 +24,7 @@
     faceLandmarkerLoading: null,
     detecting: false,
     lastTestId: "",
+    ownerAccessSig: "",
     clientTestCode: "",
     processedImages: {},
     gates: {},
@@ -754,6 +755,7 @@
           mode: json.mode || "fallback",
           test_id: json.test_id || "",
           expires_at: json.expires_at || "",
+          owner_access_sig: json.owner_access_sig || "",
           report: json.report,
           pair_report: json.pair_report || null
         } } },
@@ -870,9 +872,16 @@
     }, 180);
   }
 
+  function ownerSigStorageKey(tid){
+    return `fi_owner_sig_${tid}`;
+  }
+
   function directReportUrl(testId){
     const tid = testId || state.lastTestId || state.clientTestCode;
-    return `steckbrief-direkt.html?mode=owner&tid=${encodeURIComponent(tid)}`;
+    const sig = state.ownerAccessSig || (window.sessionStorage ? window.sessionStorage.getItem(ownerSigStorageKey(tid)) : "") || "";
+    let url = `steckbrief-direkt.html?mode=owner&tid=${encodeURIComponent(tid)}`;
+    if (sig) url += `&sig=${encodeURIComponent(sig)}`;
+    return url;
   }
 
   async function createReport(){
@@ -975,6 +984,12 @@
     if (directPayload.test_id || (data && data.test_id)) {
       state.lastTestId = directPayload.test_id || data.test_id;
       report.test_id = state.lastTestId;
+    }
+    state.ownerAccessSig = directPayload.owner_access_sig || (data && data.owner_access_sig) || "";
+    if (state.lastTestId && state.ownerAccessSig && window.sessionStorage) {
+      try {
+        window.sessionStorage.setItem(ownerSigStorageKey(state.lastTestId), state.ownerAccessSig);
+      } catch (_) {}
     }
     if (directPayload.expires_at) report.expires_at = directPayload.expires_at;
     if (data && data.warnings && data.warnings.length) report.system_note = data.warnings.join(" | ");
@@ -1410,7 +1425,11 @@
   if (resetButton) resetButton.addEventListener("click", () => window.location.reload());
   if (directButton) directButton.addEventListener("click", () => { window.location.href = directReportUrl(); });
   if (reelButton) reelButton.addEventListener("click", () => {
-    window.location.href = `steckbrief-reel.html?mode=owner&tid=${encodeURIComponent(state.lastTestId || state.clientTestCode)}`;
+    const rtid = state.lastTestId || state.clientTestCode;
+    const rsig = state.ownerAccessSig || (window.sessionStorage ? window.sessionStorage.getItem(ownerSigStorageKey(rtid)) : "") || "";
+    let rurl = `steckbrief-reel.html?mode=owner&tid=${encodeURIComponent(rtid)}`;
+    if (rsig) rurl += `&sig=${encodeURIComponent(rsig)}`;
+    window.location.href = rurl;
   });
   if (shareButton) shareButton.addEventListener("click", async () => {
     const textValue = shareText();

@@ -12,7 +12,7 @@ define('FACEINSIGHT_OPENAI_ANALYSIS_MODEL', 'gpt-5.4');
 define('FACEINSIGHT_OPENAI_DESIGN_MODEL', 'gpt-5.4-mini');
 define('FACEINSIGHT_OPENAI_IMAGE_MODEL', 'gpt-image-1');
 
-// Fuer signierte Share-Links.
+// Signierte Gast-Links (tid|guest|exp), Owner-Nachweis (tid|owner) fuer report-data / issue — ohne Secret kein Zugriff.
 define('FACEINSIGHT_SHARE_TOKEN_SECRET', 'REPLACE_WITH_LONG_RANDOM_SECRET');
 define('FACEINSIGHT_PUBLIC_BASE_URL', 'https://faceinsight.de/wp-content/faceinsight-generator');
 

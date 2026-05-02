@@ -10,6 +10,7 @@ $configFile = __DIR__ . '/config.php';
 if (is_file($configFile)) {
     require_once $configFile;
 }
+require_once __DIR__ . '/auth-tokens.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     respond(['success' => false, 'message' => 'Nur GET ist erlaubt.'], 405);
@@ -18,7 +19,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
 $tid = strtoupper(trim((string)($_GET['tid'] ?? $_GET['ref'] ?? '')));
 $mode = strtolower(trim((string)($_GET['mode'] ?? 'owner')));
 $exp = intval($_GET['exp'] ?? 0);
-$sig = normalize_sig((string)($_GET['sig'] ?? ''));
+$sig = fi_normalize_sig((string)($_GET['sig'] ?? ''));
 debug_log('H1', 'report-data.php:request', 'incoming request', [
     'mode' => $mode,
     'tid' => $tid,
@@ -30,13 +31,25 @@ if (!preg_match('/^FI-[A-Z0-9\-]{6,64}$/', $tid)) {
     respond(['success' => false, 'message' => 'ungueltige tid'], 400);
 }
 
-if ($mode === 'guest' && !valid_guest_signature($tid, $exp, $sig)) {
-    debug_log('H4', 'report-data.php:guest-guard', 'guest signature invalid', [
-        'tid' => $tid,
-        'exp' => $exp,
-        'sigLength' => strlen($sig),
-    ]);
-    respond(['success' => false, 'message' => 'Gast-Link ungueltig oder abgelaufen.'], 403);
+if ($mode === 'guest') {
+    if (!valid_guest_signature($tid, $exp, $sig)) {
+        debug_log('H4', 'report-data.php:guest-guard', 'guest signature invalid', [
+            'tid' => $tid,
+            'exp' => $exp,
+            'sigLength' => strlen($sig),
+        ]);
+        respond(['success' => false, 'message' => 'Gast-Link ungueltig oder abgelaufen.'], 403);
+    }
+} elseif ($mode === 'owner') {
+    if ($sig === '' || !fi_valid_owner_signature($tid, $sig)) {
+        debug_log('H4', 'report-data.php:owner-guard', 'owner signature invalid', [
+            'tid' => $tid,
+            'sigLength' => strlen($sig),
+        ]);
+        respond(['success' => false, 'message' => 'Owner-Nachweis fehlt oder ungueltig.'], 403);
+    }
+} else {
+    respond(['success' => false, 'message' => 'ungueltiger mode'], 400);
 }
 
 $file = dirname(__DIR__) . '/data/tests/' . basename($tid) . '.json';
@@ -54,6 +67,11 @@ if (!is_array($record) || !is_array($record['report'] ?? null)) {
         'tid' => $tid,
     ]);
     respond(['success' => false, 'message' => 'Report-Datei ist ungueltig.'], 500);
+}
+
+$expiresTs = strtotime((string)($record['expires_at'] ?? ''));
+if ($expiresTs && $expiresTs < time()) {
+    respond(['success' => false, 'message' => 'Report abgelaufen.'], 410);
 }
 
 $report = $record['report'];
@@ -78,23 +96,10 @@ respond([
 
 function valid_guest_signature(string $tid, int $exp, string $sig): bool {
     if ($exp <= 0 || $sig === '' || $exp < time()) return false;
-    $secret = share_secret();
+    $secret = fi_share_secret();
     if ($secret === '') return false;
     $expected = hash_hmac('sha256', $tid . '|guest|' . $exp, $secret);
     return hash_equals($expected, $sig);
-}
-
-function normalize_sig(string $value): string {
-    return strtolower((string)preg_replace('/[^a-f0-9]/i', '', trim($value)));
-}
-
-function share_secret(): string {
-    if (defined('FACEINSIGHT_SHARE_TOKEN_SECRET') && FACEINSIGHT_SHARE_TOKEN_SECRET) {
-        return (string)FACEINSIGHT_SHARE_TOKEN_SECRET;
-    }
-    $env = getenv('FACEINSIGHT_SHARE_TOKEN_SECRET');
-    if (is_string($env) && $env !== '') return $env;
-    return '';
 }
 
 function report_photos(array $payload): array {

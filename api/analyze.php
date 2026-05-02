@@ -10,6 +10,7 @@ $configFile = __DIR__ . '/config.php';
 if (is_file($configFile)) {
     require_once $configFile;
 }
+require_once __DIR__ . '/auth-tokens.php';
 
 if (($_GET['health'] ?? '') === '1') {
     respond([
@@ -65,6 +66,7 @@ respond([
     'mode' => $render['mode'] ?? 'openai',
     'test_id' => $render['test_id'] ?? '',
     'expires_at' => $render['expires_at'] ?? '',
+    'owner_access_sig' => $render['owner_access_sig'] ?? '',
     'report' => $render['report'] ?? fallback_report($payload),
     'pair_report' => $render['pair_report'] ?? null
 ]);
@@ -434,6 +436,7 @@ function run_report_stage(array $payload, array $options = []): array {
         'mode' => $mode,
         'test_id' => $testMeta['test_id'],
         'expires_at' => $testMeta['expires_at'],
+        'owner_access_sig' => fi_owner_signature_for_tid($testMeta['test_id']),
         'report' => $projected,
         'pair_report' => $pairData,
     ];
@@ -801,6 +804,16 @@ function persist_test(array $payload, array $report): array {
     $id = $payload['client_test_code'] ?: ('FI-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 12)));
     $created = time();
     $expires = $ttl > 0 ? $created + $ttl : $created + 3600;
+    $dropImages = (($payload['consent']['storage_mode'] ?? '') === 'delete_immediately');
+    $emptySlots = array_fill_keys(image_keys(), '');
+    $reportStore = $report;
+    if ($dropImages) {
+        if (!isset($reportStore['visual_asset']) || !is_array($reportStore['visual_asset'])) {
+            $reportStore['visual_asset'] = ['premium_portrait_image' => ''];
+        } else {
+            $reportStore['visual_asset']['premium_portrait_image'] = '';
+        }
+    }
     $record = [
         'test_id' => $id,
         'mode' => $payload['mode'] ?? 'free',
@@ -810,10 +823,10 @@ function persist_test(array $payload, array $report): array {
             'client_test_code' => $payload['client_test_code'] ?? '',
             'user' => $payload['user'],
             'consent' => $payload['consent'],
-            'images' => persistable_images($payload['images'] ?? []),
-            'processed_images' => persistable_images($payload['processed_images'] ?? []),
+            'images' => $dropImages ? $emptySlots : persistable_images($payload['images'] ?? []),
+            'processed_images' => $dropImages ? $emptySlots : persistable_images($payload['processed_images'] ?? []),
         ],
-        'report' => $report,
+        'report' => $reportStore,
     ];
     @file_put_contents(tests_dir() . '/' . $id . '.json', json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     sync_google_sheet($record);
@@ -1293,10 +1306,11 @@ function openai_premium_portrait(string $dataUrl, string $key, string $slot = 'f
     $expression = $slot === 'front_neutral'
         ? 'neutral expression, closed relaxed mouth'
         : 'natural smile expression with the original visible teeth if present';
-    $prompt = 'Edit this FaceInsight portrait into a premium report-ready cutout. Keep the exact same person, identity, facial proportions, apparent age, wrinkles, pores, skin texture, hairline, beard, ears and teeth. Do not beautify, do not make younger, do not smooth skin, do not reshape the face, do not whiten teeth. '
-        . 'Remove the original room/background completely and replace it with a clean premium dark navy / royal-blue studio background with very subtle gold edge light and restrained blueprint guide accents. '
-        . 'Preserve the original face realistically with only light tone balance, mild sharpness recovery and natural contrast. Full head visible, shoulders acceptable, centered composition, no cropped forehead/chin. '
-        . 'Expression to preserve: ' . $expression . '. No text, no watermark, no decorative props, no cartoon style.';
+    $prompt = 'FaceInsight premium export: REMOVE ONLY the original environment/room/background behind the subject. Replace it with a flat, neutral dark navy studio backdrop (no scenery, no props). '
+        . 'CRITICAL — DO NOT EDIT THE FACE OR BODY: keep the exact same photograph of the person — identity, apparent age, facial proportions, asymmetry, wrinkles, pores, skin texture, moles, beard stubble, hairline, ears, nose, eyes, lips, teeth must remain unchanged. '
+        . 'Forbidden: beautifying, de-aging, skin smoothing, reshaping, slimming, makeup, teeth whitening, stylization, illustration, cartoon, painting, or any facial geometry change. '
+        . 'Allowed only on the whole frame (including face exposure): very subtle global white balance and mild contrast so the photo reads clearly on the new backdrop — still photorealistic. '
+        . 'Full head visible, centered. Expression locked: ' . $expression . '. No text, no watermark.';
     return openai_image_edit($dataUrl, $prompt, $key);
 }
 

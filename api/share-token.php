@@ -10,6 +10,7 @@ $configFile = __DIR__ . '/config.php';
 if (is_file($configFile)) {
     require_once $configFile;
 }
+require_once __DIR__ . '/auth-tokens.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     respond(['success' => false, 'message' => 'Nur GET ist erlaubt.'], 405);
@@ -19,7 +20,7 @@ $action = strtolower((string)($_GET['action'] ?? 'verify'));
 $tid = strtoupper(trim((string)($_GET['tid'] ?? '')));
 $mode = strtolower(trim((string)($_GET['mode'] ?? 'guest')));
 $exp = intval($_GET['exp'] ?? 0);
-$sig = normalize_sig((string)($_GET['sig'] ?? ''));
+$sig = fi_normalize_sig((string)($_GET['sig'] ?? ''));
 debug_log('H5', 'share-token.php:request', 'incoming request', [
     'action' => $action,
     'mode' => $mode,
@@ -32,12 +33,16 @@ if (!preg_match('/^FI-[A-Z0-9\-]{6,64}$/', $tid)) {
     respond(['success' => false, 'message' => 'ungueltige tid'], 400);
 }
 
-$secret = share_secret();
+$secret = fi_share_secret();
 if ($secret === '') {
     respond(['success' => false, 'message' => 'share secret fehlt'], 500);
 }
 
 if ($action === 'issue') {
+    $ownerSig = fi_normalize_sig((string)($_GET['owner_sig'] ?? ''));
+    if ($ownerSig === '' || !fi_valid_owner_signature($tid, $ownerSig)) {
+        respond(['success' => false, 'message' => 'Owner-Nachweis fehlt oder ungueltig.'], 403);
+    }
     $ttl = 7 * 86400;
     $exp = time() + $ttl;
     $mode = 'guest';
@@ -88,21 +93,6 @@ function build_guest_url(string $tid, int $exp, string $sig): string {
 function build_sig(string $tid, string $mode, int $exp, string $secret): string {
     $payload = $tid . '|' . $mode . '|' . $exp;
     return hash_hmac('sha256', $payload, $secret);
-}
-
-function normalize_sig(string $value): string {
-    return strtolower((string)preg_replace('/[^a-f0-9]/i', '', trim($value)));
-}
-
-function share_secret(): string {
-    if (defined('FACEINSIGHT_SHARE_TOKEN_SECRET') && FACEINSIGHT_SHARE_TOKEN_SECRET) {
-        return (string)FACEINSIGHT_SHARE_TOKEN_SECRET;
-    }
-    $env = getenv('FACEINSIGHT_SHARE_TOKEN_SECRET');
-    if (is_string($env) && $env !== '') {
-        return $env;
-    }
-    return '';
 }
 
 function public_base_url(): string {

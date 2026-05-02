@@ -304,10 +304,20 @@
       var exp = params.get("exp") || "";
       var sig = params.get("sig") || "";
       var ref = normalizeTid(params.get("tid") || params.get("ref") || "");
+      var ownerSig = "";
+      if (mode === "owner") {
+        ownerSig = sig || "";
+        if (ref && !ownerSig) {
+          try { ownerSig = sessionStorage.getItem("fi_owner_sig_" + ref) || ""; } catch (_) {}
+        }
+        if (ref && ownerSig) {
+          try { sessionStorage.setItem("fi_owner_sig_" + ref, ownerSig); } catch (_) {}
+        }
+      }
       var baseUrl = window.location.origin + window.location.pathname;
       var guestUrl = ref ? baseUrl + "?mode=guest&tid=" + encodeURIComponent(ref) : baseUrl;
-      var ownerUrl = ref ? baseUrl + "?mode=owner&tid=" + encodeURIComponent(ref) : baseUrl;
-      var paywallUrl = ref ? baseUrl.replace("steckbrief-reel.html", "steckbrief-direkt.html") + "?mode=guest&tid=" + encodeURIComponent(ref) : "steckbrief-direkt.html";
+      var ownerUrl = ref ? baseUrl + "?mode=owner&tid=" + encodeURIComponent(ref) + (ownerSig ? "&sig=" + encodeURIComponent(ownerSig) : "") : baseUrl;
+      var paywallUrl = ref ? baseUrl.replace("steckbrief-reel.html", "steckbrief-direkt.html") + "?mode=owner&tid=" + encodeURIComponent(ref) + (ownerSig ? "&sig=" + encodeURIComponent(ownerSig) : "") : "steckbrief-direkt.html";
       var apiBase = "./api/share-token.php";
       var reportApiBase = "./api/report-data.php";
       var signedGuestUrl = null;
@@ -356,7 +366,9 @@
         if (signedGuestUrl) return signedGuestUrl;
         if (!normalizeTid(ref)) return null;
         try {
-          var res = await fetch(apiBase + "?action=issue&tid=" + encodeURIComponent(ref), { credentials: "same-origin" });
+          var qIssue = "?action=issue&tid=" + encodeURIComponent(ref);
+          if (ownerSig) qIssue += "&owner_sig=" + encodeURIComponent(ownerSig);
+          var res = await fetch(apiBase + qIssue, { credentials: "same-origin" });
           if (!res.ok) return null;
           var json = await res.json();
           if (json && json.success && json.guest_url) {
@@ -461,6 +473,7 @@
         }
         var reportUrl = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
         if (mode === "guest") reportUrl += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+        else if (mode === "owner" && ownerSig) reportUrl += "&sig=" + encodeURIComponent(ownerSig);
         try {
           var res = await fetch(reportUrl, { credentials: "same-origin" });
           var json = await res.json().catch(function(){ return null; });

@@ -1076,6 +1076,13 @@
       var exp = params.get("exp") || "";
       var sig = params.get("sig") || "";
       var ref = normalizeTid(params.get("tid") || params.get("ref") || "");
+      var ownerSig = (mode === "owner" && sig) ? sig : "";
+      if (mode === "owner" && ref && !ownerSig) {
+        try { ownerSig = sessionStorage.getItem("fi_owner_sig_" + ref) || ""; } catch (_) {}
+      }
+      if (mode === "owner" && ref && ownerSig) {
+        try { sessionStorage.setItem("fi_owner_sig_" + ref, ownerSig); } catch (_) {}
+      }
       var apiBase = "./api/share-token.php";
       var reportApiBase = "./api/report-data.php";
       var shareText = "FaceInsight Premium-Steckbrief";
@@ -1098,7 +1105,9 @@
       }
 
       function reelOwnerUrl(){
-        return "steckbrief-reel.html?mode=owner&tid=" + encodeURIComponent(ref);
+        var u = "steckbrief-reel.html?mode=owner&tid=" + encodeURIComponent(ref);
+        if (ownerSig) u += "&sig=" + encodeURIComponent(ownerSig);
+        return u;
       }
 
       function fallbackGuestUrl(){
@@ -1140,7 +1149,9 @@
         if (signedGuestUrl) return signedGuestUrl;
         if (!normalizeTid(ref)) return null;
         try {
-          var res = await fetch(apiBase + "?action=issue&tid=" + encodeURIComponent(ref), { credentials: "same-origin" });
+          var qs = "?action=issue&tid=" + encodeURIComponent(ref);
+          if (ownerSig) qs += "&owner_sig=" + encodeURIComponent(ownerSig);
+          var res = await fetch(apiBase + qs, { credentials: "same-origin" });
           if (!res.ok) return null;
           var json = await res.json();
           if (json && json.success && json.guest_url) {
@@ -1353,6 +1364,7 @@
         }
         var url = reportApiBase + "?mode=" + encodeURIComponent(mode) + "&tid=" + encodeURIComponent(ref);
         if (mode === "guest") url += "&exp=" + encodeURIComponent(exp) + "&sig=" + encodeURIComponent(sig);
+        else if (mode === "owner" && ownerSig) url += "&sig=" + encodeURIComponent(ownerSig);
         try {
           var res = await fetch(url, { credentials: "same-origin" });
           var json = await res.json().catch(function(){ return null; });
@@ -1430,6 +1442,7 @@
 
       if (mode === "owner" && normalizeTid(ref)) {
         var ownerUrl = "steckbrief-direkt.html?mode=owner&tid=" + encodeURIComponent(ref);
+        if (ownerSig) ownerUrl += "&sig=" + encodeURIComponent(ownerSig);
         if (forcedView === "mobile" || forcedView === "desktop") {
           ownerUrl += "&view=" + encodeURIComponent(forcedView);
         }
