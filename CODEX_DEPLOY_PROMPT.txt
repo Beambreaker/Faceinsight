@@ -1,0 +1,103 @@
+================================================================================
+CODEX — Deploy & Finalisierung FaceInsight (Standalone)
+================================================================================
+Kontext: Repo-Pfad lokal: .../active/standalone. Branch master = origin (Commit
+01a5e16 bzw. aktueller HEAD). Der Cursor/IDE-Agent kann hier KEIN Live-Deploy
+und KEINE Host-Authentifizierung ausführen — das ist deine Aufgabe.
+
+--------------------------------------------------------------------------------
+WAS DER IDE-AGENT NICHT / NICHT ZUVERLÄSSIG ERLEDIGEN KANN
+--------------------------------------------------------------------------------
+- FTP/SFTP/rsync/SSH-Upload auf den Webspace (keine Zugangsdaten im Projekt).
+- WordPress-Admin, Plugin-Updates, Permalinks, .htaccess auf dem Server ändern.
+- Live-URLs des Nutzers aufrufen (keine öffentliche Basis-URL im Repo).
+- Hosting-Panel (PHP-Version, cURL-Extension, Limits) verifizieren — nur auf dem
+  Server sichtbar.
+- OAuth/API-Schlüssel eintragen; Secrets gehören nur in config.local.php / ENV
+  auf dem Host, niemals ins Git.
+
+--------------------------------------------------------------------------------
+EXKLUSIONEN BEIM UPLOAD (NIEMALS ÜBERSCHREIBEN ODER MIT COMMITTEN)
+--------------------------------------------------------------------------------
+- api/config.local.php  (Produktions-Geheimnisse)
+- api/config.php        (falls lokal; auf Server separat pflegen)
+- api/debug-log.php     (nur bei Bedarf und abgesichert)
+- LOG_*.txt, *.log
+- data/tests/
+- _remote-backups/, _qa-screenshots/
+
+--------------------------------------------------------------------------------
+TODO-LISTE FÜR CODEX (DER REIHE NACH AUSFÜHREN)
+--------------------------------------------------------------------------------
+
+[ ] 1. Repo-Stand prüfen
+    Befehl (lokal im Ordner standalone):
+      git status -sb
+      git log -1 --oneline
+    Erwartung: working tree clean bis auf ggf. untracked LOG/debug-log; master
+    aligned mit origin.
+
+[ ] 2. Release-Dateimenge festlegen
+    Hochladen (relativ zum Generator-Webroot, z. B. wp-content/faceinsight-generator/):
+      index.html
+      steckbrief-direkt.html
+      steckbrief-reel.html
+      steckbrief-premium-preview.html
+      assets/css/faceinsight.css
+      assets/js/faceinsight.js
+      api/auth-tokens.php
+      api/analyze.php
+      api/report-data.php
+      api/share-token.php
+      api/config.sample.php
+      (weitere api/*.php außer debug-log.php / ohne lokale config)
+    Optional: server/faceinsight-generator-route.php nur wenn WP-Route mitdeployt wird.
+
+[ ] 3. Server-seitig config.php
+    Auf dem Host: api/config.php aus config.sample.php ableiten ODER nur
+    Umgebungsvariablen nutzen — KEINE Secrets aus Git übernehmen.
+
+[ ] 4. Deploy ausführen (Methode vom Nutzer: FTP-Client, rsync, CI)
+    Beispiel rsync (Platzhalter anpassen; Test mit --dry-run zuerst):
+      rsync -avz --exclude 'config.local.php' --exclude 'config.php' \
+        --exclude 'debug-log.php' --exclude '.git' --exclude 'data/tests' \
+        --exclude '_remote-backups' \
+        ./ USER@HOST:/pfad/zum/faceinsight-generator/
+    Oder: Dateien aus Abschnitt 2 manuell im FTP-Client hochladen.
+
+[ ] 5. Live Smoke — Health
+    Im Browser oder curl (BASE = öffentliche Generator-Basis-URL):
+      curl -sS "https://BASE/api/analyze.php?health=1"
+    Erwartung: JSON success true; auf Produktion capabilities.curl und
+    curl_file sollten true sein (Bild-Pipeline). Wenn false: PHP cURL auf dem
+    Host aktivieren.
+
+[ ] 6. Live Smoke — Generator-Flow
+    - Startseite index.html öffnen (Cache leeren oder Hard-Reload).
+    - Upload → Analyse → Steckbrief ohne Fehler in der Browser-Konsole.
+
+[ ] 7. Live Smoke — Owner-Link
+    Report/Steckbrief mit Owner-Zugang öffnen; Daten laden (report-data mit
+    gültigem owner_access_sig / wie im Frontend vorgesehen).
+
+[ ] 8. Live Smoke — Gast-Link
+    Geteilten Link mit gültigem Token öffnen → funktioniert.
+
+[ ] 9. Live Smoke — Gast abweisen
+    Abgelaufenes oder manipuliertes Token → Zugriff muss blockiert werden
+    (keine Report-Daten, klare Fehlermeldung).
+
+[ ] 10. Kurzbericht für den Nutzer
+    Notieren: deploytes Datum/Uhrzeit, getestete URLs (ohne Secrets), ob
+    health curl=true, ob alle Smoke-Schritte grün.
+
+--------------------------------------------------------------------------------
+HINWEIS CACHE
+--------------------------------------------------------------------------------
+HTML referenziert Assets mit ?v=20260502-1500. Nach Deploy bei Bedarf alle ?v=
+auf neues Datum erhöhen und erneut nur die geänderten HTML-Dateien hochladen.
+
+================================================================================
+Ende Prompt — Codex soll die Checkboxen abarbeiten und bei Blockern den Nutzer
+nach Host-Zugang oder exakter BASE-URL fragen.
+================================================================================
