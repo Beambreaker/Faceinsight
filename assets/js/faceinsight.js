@@ -93,7 +93,7 @@
       if (window.localStorage.getItem("fi_cookie_ok") !== "1") return;
       if (!readCookiePrefs()) {
         window.localStorage.setItem(COOKIE_PREFS_KEY, JSON.stringify({
-          v: 2,
+          v: 3,
           essential: true,
           comfort: true,
           legacy: true,
@@ -106,7 +106,7 @@
 
   function cookieConsentDismissed(){
     const p = readCookiePrefs();
-    if (p && p.v === 2 && p.essential === true) return true;
+    if (p && (p.v === 2 || p.v === 3) && p.essential === true) return true;
     try {
       return window.sessionStorage.getItem("fi_cookie_sess_ok") === "1";
     } catch (_) {
@@ -116,7 +116,7 @@
 
   function persistCookieConsent(comfort){
     const payload = {
-      v: 2,
+      v: 3,
       essential: true,
       comfort: Boolean(comfort),
       at: new Date().toISOString()
@@ -813,6 +813,75 @@
     state.wakeLock = null;
   }
 
+  const MEMORY_FACE_PAIRS = [
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Albert_Einstein_Head.jpg?width=200",
+      alt: "Albert Einstein"
+    },
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/GodfreyKneller-IsaacNewton-1689.jpg?width=200",
+      alt: "Isaac Newton"
+    },
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Marie_Curie_c1920.jpg?width=200",
+      alt: "Marie Curie"
+    },
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Charles_Darwin_by_Julia_Margaret_Cameron,_1868_restored.jpg?width=200",
+      alt: "Charles Darwin"
+    },
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Nikola_Tesla,_c1893,_NPC_-_Restoration,_cropped.jpg?width=200",
+      alt: "Nikola Tesla"
+    },
+    {
+      url: "https://commons.wikimedia.org/wiki/Special:FilePath/Ada_Byron_aged_seventeen_(1836).jpg?width=200",
+      alt: "Ada Lovelace"
+    }
+  ];
+
+  function setAnalysisUiBusy(busy){
+    document.body.classList.toggle("fi-analyse-active", Boolean(busy));
+  }
+
+  function endAnalysisLocked(){
+    window.clearInterval(state.loadingTimer);
+    window.clearInterval(state.loadingStoryTimer);
+    releaseWakeLock();
+    const loading = $("[data-loading]");
+    if (loading) loading.hidden = true;
+    setAnalysisUiBusy(false);
+  }
+
+  function showFaceCard(btn){
+    btn.dataset.revealed = "1";
+    let img = btn.querySelector(".fi-memory-face");
+    if (!img) {
+      img = document.createElement("img");
+      img.className = "fi-memory-face";
+      img.alt = btn.getAttribute("data-face-alt") || "";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer-when-downgrade";
+      btn.appendChild(img);
+    }
+    img.src = btn.getAttribute("data-face-url") || "";
+    img.hidden = false;
+    const back = btn.querySelector(".fi-memory-back");
+    if (back) back.hidden = true;
+  }
+
+  function hideFaceCard(btn){
+    btn.dataset.revealed = "0";
+    const img = btn.querySelector(".fi-memory-face");
+    if (img) {
+      img.hidden = true;
+      img.removeAttribute("src");
+    }
+    const back = btn.querySelector(".fi-memory-back");
+    if (back) back.hidden = false;
+  }
+
   function shuffleDeck(arr){
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -836,8 +905,12 @@
   function buildMemoryGrid(){
     const grid = $("[data-memory-grid]");
     if (!grid) return;
-    const symbols = ["🎬", "🎨", "🎯", "🌟", "🎭", "🏔️"];
-    const deck = shuffleDeck(symbols.flatMap((sym, pairId) => [{ sym, pairId }, { sym, pairId }]));
+    const deck = shuffleDeck(
+      MEMORY_FACE_PAIRS.flatMap((face, pairId) => [
+        { url: face.url, alt: face.alt, pairId },
+        { url: face.url, alt: face.alt, pairId }
+      ])
+    );
     grid.innerHTML = "";
     deck.forEach((card, idx) => {
       const b = document.createElement("button");
@@ -845,10 +918,11 @@
       b.className = "fi-memory-card";
       b.setAttribute("data-memory-idx", String(idx));
       b.setAttribute("data-pair", String(card.pairId));
-      b.setAttribute("data-symbol", card.sym);
-      b.setAttribute("aria-label", "Karte aufdecken");
+      b.setAttribute("data-face-url", card.url);
+      b.setAttribute("data-face-alt", card.alt);
+      b.setAttribute("aria-label", "Portrait aufdecken");
       b.dataset.revealed = "0";
-      b.textContent = "";
+      b.innerHTML = '<span class="fi-memory-back" aria-hidden="true">?</span>';
       grid.appendChild(b);
     });
   }
@@ -873,8 +947,7 @@
       const pair = Number(btn.getAttribute("data-pair") || -1);
       if (state.memoryMatched && state.memoryMatched.has(pair)) return;
       if (state.memoryFlip.length >= 2) return;
-      btn.dataset.revealed = "1";
-      btn.textContent = btn.getAttribute("data-symbol") || "";
+      showFaceCard(btn);
       state.memoryFlip.push(btn);
       if (state.memoryFlip.length < 2) return;
       const a = state.memoryFlip[0];
@@ -889,16 +962,15 @@
         return;
       }
       window.setTimeout(() => {
-        a.textContent = "";
-        b.textContent = "";
-        a.dataset.revealed = "0";
-        b.dataset.revealed = "0";
+        hideFaceCard(a);
+        hideFaceCard(b);
         state.memoryFlip = [];
       }, 620);
     });
   }
 
   function startLoading(){
+    setAnalysisUiBusy(true);
     const loading = $("[data-loading]");
     const report = $("[data-report]");
     const error = $("[data-report-error]");
@@ -959,6 +1031,7 @@
       const report = $("[data-report]");
       if (loading) loading.hidden = true;
       if (report) report.hidden = false;
+      setAnalysisUiBusy(false);
     }, 180);
   }
 
@@ -1037,9 +1110,7 @@
     }
 
     if (data && data.retry) {
-      window.clearInterval(state.loadingTimer);
-      window.clearInterval(state.loadingStoryTimer);
-      releaseWakeLock();
+      endAnalysisLocked();
       setStep(1);
       const message = data.message || "Die KI konnte die Bilder nicht sicher pruefen. Bitte neu aufnehmen.";
       setCameraStatus(message);
@@ -1084,7 +1155,15 @@
     if (directPayload.expires_at) report.expires_at = directPayload.expires_at;
     if (data && data.warnings && data.warnings.length) report.system_note = data.warnings.join(" | ");
     state.lastReport = report;
-    if (new URLSearchParams(window.location.search).get("inline") !== "1") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceRedirect = urlParams.get("redirect") === "1";
+    const forceInline = urlParams.get("inline") === "1";
+    const desktopWide = typeof window.matchMedia === "function"
+      ? window.matchMedia("(min-width: 761px)").matches
+      : true;
+    const stayOnGenerator = forceInline || (desktopWide && !forceRedirect);
+    if (!stayOnGenerator) {
+      setAnalysisUiBusy(false);
       window.location.href = directReportUrl(report.test_id || state.lastTestId);
       return;
     }
@@ -1156,6 +1235,11 @@
   function observation(area, finding){ return { area, finding }; }
 
   function renderReport(report){
+    const ki = $("[data-ki-status]");
+    if (ki) {
+      ki.hidden = false;
+      ki.textContent = "KI-Pipeline abgeschlossen — Analyse, Bildpflege und Steckbrief-Maske angewendet.";
+    }
     const head = report.report_header || {};
     const scoreItems = report.scores || [];
     const averageScore = scoreItems.length
