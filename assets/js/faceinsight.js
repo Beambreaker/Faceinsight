@@ -31,7 +31,10 @@
     loadingStoryTimer: null,
     loadingStoryIndex: 0,
     loadingGameScore: 0,
-    loadingGameGoal: 15,
+    loadingGameGoal: 6,
+    greenStreak: {},
+    memoryFlip: [],
+    memoryMatched: null,
     wakeLock: null,
     loadingStartedAt: 0
   };
@@ -73,7 +76,7 @@
     if (visible) visible.textContent = state.clientTestCode;
   }
 
-  const COOKIE_PREFS_KEY = "fi_cookie_prefs_v2";
+  const COOKIE_PREFS_KEY = "fi_cookie_prefs_v3";
 
   function readCookiePrefs(){
     try {
@@ -289,10 +292,23 @@
       const face = await detectFace(video);
       const verdict = liveVerdict(key, quality, face, video.videoWidth, video.videoHeight);
 
-      if (verdict.color !== "green") cancelCountdown(key);
+      if (verdict.color !== "green") {
+        state.greenStreak[key] = 0;
+        cancelCountdown(key);
+      } else {
+        state.greenStreak[key] = (state.greenStreak[key] || 0) + 1;
+        if (!state.countdown && state.activeKey === key && state.greenStreak[key] >= 5) {
+          state.greenStreak[key] = 0;
+          startCountdown(key);
+        }
+      }
       state.gates[key] = verdict.gate || gateResult(false, "not_ready", verdict.message);
       updateCaptureControls(key, verdict.color === "green");
-      setFrameState(key, verdict.color, verdict.message);
+      let msg = verdict.message;
+      if (verdict.color === "green") {
+        msg = state.countdown ? "Automatische Aufnahme …" : "Halten … automatischer Ausloeser gleich.";
+      }
+      setFrameState(key, verdict.color, msg);
     } finally {
       state.detecting = false;
     }
@@ -447,6 +463,7 @@
   }
 
   function startCountdown(key){
+    if (state.countdown) return;
     state.countdownValue = 3;
     showCountdown(key, state.countdownValue);
     state.countdown = window.setInterval(() => {
@@ -796,16 +813,89 @@
     state.wakeLock = null;
   }
 
-  function resetLoadingGame(){
-    state.loadingGameScore = 0;
-    const score = $("[data-loading-game-score]");
-    if (score) score.textContent = `0 / ${state.loadingGameGoal}`;
+  function shuffleDeck(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
   }
 
-  function updateLoadingGame(){
-    state.loadingGameScore = Math.min(state.loadingGameGoal, state.loadingGameScore + 1);
+  function resetLoadingGame(){
+    state.loadingGameScore = 0;
+    state.memoryFlip = [];
+    state.memoryMatched = new Set();
     const score = $("[data-loading-game-score]");
-    if (score) score.textContent = `${state.loadingGameScore} / ${state.loadingGameGoal}`;
+    if (score) score.textContent = `0 / ${state.loadingGameGoal} Paare`;
+    buildMemoryGrid();
+  }
+
+  function buildMemoryGrid(){
+    const grid = $("[data-memory-grid]");
+    if (!grid) return;
+    const symbols = ["🎬", "🎨", "🎯", "🌟", "🎭", "🏔️"];
+    const deck = shuffleDeck(symbols.flatMap((sym, pairId) => [{ sym, pairId }, { sym, pairId }]));
+    grid.innerHTML = "";
+    deck.forEach((card, idx) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "fi-memory-card";
+      b.setAttribute("data-memory-idx", String(idx));
+      b.setAttribute("data-pair", String(card.pairId));
+      b.setAttribute("data-symbol", card.sym);
+      b.setAttribute("aria-label", "Karte aufdecken");
+      b.dataset.revealed = "0";
+      b.textContent = "";
+      grid.appendChild(b);
+    });
+  }
+
+  function updateLoadingGameScore(){
+    const score = $("[data-loading-game-score]");
+    if (score) score.textContent = `${state.loadingGameScore} / ${state.loadingGameGoal} Paare`;
+    if (state.loadingGameScore >= state.loadingGameGoal) {
+      const copyNode = $("[data-loading-copy]");
+      if (copyNode) copyNode.textContent = "Alle Paare gefunden. KI finalisiert den Report.";
+    }
+  }
+
+  function wireMemoryGame(){
+    const game = $("[data-loading-game]");
+    if (!game || game.dataset.memoryBound === "1") return;
+    game.dataset.memoryBound = "1";
+    game.addEventListener("click", e => {
+      const btn = e.target.closest(".fi-memory-card");
+      if (!btn || btn.disabled) return;
+      if (btn.dataset.revealed === "1") return;
+      const pair = Number(btn.getAttribute("data-pair") || -1);
+      if (state.memoryMatched && state.memoryMatched.has(pair)) return;
+      if (state.memoryFlip.length >= 2) return;
+      btn.dataset.revealed = "1";
+      btn.textContent = btn.getAttribute("data-symbol") || "";
+      state.memoryFlip.push(btn);
+      if (state.memoryFlip.length < 2) return;
+      const a = state.memoryFlip[0];
+      const b = state.memoryFlip[1];
+      const pa = a.getAttribute("data-pair");
+      const pb = b.getAttribute("data-pair");
+      if (pa === pb) {
+        state.memoryMatched.add(Number(pa));
+        state.loadingGameScore += 1;
+        updateLoadingGameScore();
+        state.memoryFlip = [];
+        return;
+      }
+      window.setTimeout(() => {
+        a.textContent = "";
+        b.textContent = "";
+        a.dataset.revealed = "0";
+        b.dataset.revealed = "0";
+        state.memoryFlip = [];
+      }, 620);
+    });
   }
 
   function startLoading(){
@@ -1403,7 +1493,43 @@
   });
   form.addEventListener("input", updateNav);
   form.addEventListener("change", updateNav);
-  $$("[data-start-camera]").forEach(button => button.addEventListener("click", () => startCamera(button.dataset.startCamera)));
+  const cameraGate = $("[data-camera-gate]");
+  const cameraGateOk = $("[data-camera-gate-ok]");
+  function maybeStartCamera(key){
+    const run = () => startCamera(key);
+    try {
+      if (window.sessionStorage && window.sessionStorage.getItem("fi_camera_intro_ok") === "1") {
+        run();
+        return;
+      }
+    } catch (_) {}
+    if (!cameraGate) {
+      run();
+      return;
+    }
+    cameraGate.hidden = false;
+    cameraGate.setAttribute("aria-hidden", "false");
+    document.body.classList.add("fi-camera-gate-open");
+    const hideGate = () => {
+      cameraGate.hidden = true;
+      cameraGate.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("fi-camera-gate-open");
+    };
+    const onOk = e => {
+      e.preventDefault();
+      try {
+        window.sessionStorage.setItem("fi_camera_intro_ok", "1");
+      } catch (_) {}
+      hideGate();
+      if (cameraGateOk) cameraGateOk.removeEventListener("click", onOk);
+      run();
+    };
+    if (cameraGateOk) cameraGateOk.addEventListener("click", onOk, { once: true });
+  }
+  $$("[data-start-camera]").forEach(button =>
+    button.addEventListener("click", () => maybeStartCamera(button.dataset.startCamera))
+  );
+  wireMemoryGame();
   $$("[data-capture]").forEach(button => button.addEventListener("click", () => capture(button.dataset.capture, false)));
   $$("[data-upload]").forEach(input => input.addEventListener("change", () => handleUpload(input)));
   imageKeys.forEach(key => updateCaptureControls(key, false));
@@ -1412,15 +1538,6 @@
   const shareButton = $("[data-share]");
   const directButton = $("[data-direct-report]");
   const reelButton = $("[data-reel-report]");
-  const loadingGameTap = $("[data-loading-game-tap]");
-  if (loadingGameTap) loadingGameTap.addEventListener("click", () => {
-    updateLoadingGame();
-    if (state.loadingGameScore >= state.loadingGameGoal) {
-      const copyNode = $("[data-loading-copy]");
-      if (copyNode) copyNode.textContent = "Stark! Mini-Challenge geschafft. KI finalisiert den Report.";
-      loadingGameTap.textContent = "✨";
-    }
-  });
   if (printButton) printButton.addEventListener("click", () => window.print());
   if (resetButton) resetButton.addEventListener("click", () => window.location.reload());
   if (directButton) directButton.addEventListener("click", () => { window.location.href = directReportUrl(); });

@@ -1531,6 +1531,14 @@ function normalize_report(array $report, array $payload, array $preflight): arra
         $mappedImage = reference_image_url($item['label'] ?? '');
         if ($mappedImage !== '') $merged['reference']['items'][$i]['image_url'] = $mappedImage;
     }
+    if (!is_array($merged['archetype'] ?? null)) {
+        $merged['archetype'] = $fallback['archetype'];
+    }
+    $archLabel = safe_text($merged['archetype']['label'] ?? '', 120);
+    $archImg = trim((string) ($merged['archetype']['image_url'] ?? ''));
+    if ($archImg === '' || str_contains($archImg, 'Manet_-_The_Muse')) {
+        $merged['archetype']['image_url'] = archetype_image_from_label($archLabel);
+    }
     $merged['legal_note'] = 'Hinweis: visuelle Einschätzung anhand von Fotos. Ähnlichkeitswerte sind Unterhaltung, keine Identifikation, keine Verwandtschaftsaussage und keine medizinische Analyse.';
     return $merged;
 }
@@ -1567,8 +1575,36 @@ function fill_unique_rows(array $rows, array $fallback, string $key, int $limit)
     return $out;
 }
 
+function reference_label_key(string $label): string {
+    $trim = preg_replace('/\s*\([^)]*\)\s*/u', '', trim($label));
+
+    return safe_key($trim);
+}
+
+function archetype_image_from_label(string $label): string {
+    $base = 'https://commons.wikimedia.org/wiki/Special:FilePath/';
+    $l = function_exists('mb_strtolower') ? mb_strtolower($label, 'UTF-8') : strtolower($label);
+    $rules = [
+        'patriarch' => 'Rembrandt_van_Rijn_-_Self-Portrait_-_Google_Art_Project.jpg',
+        'stratege' => 'Napoleon_Bonaparte_by_Jacques-Louis_David,_1812.jpg',
+        'beobachter' => 'Johannes_Vermeer_-_Girl_with_a_Pearl_Earring_-_Google_Art_Project.jpg',
+        'ruhig' => 'Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg',
+        'praesent' => 'Hans_Holbein,_the_Younger_-_Thomas_More_-_Google_Art_Project.jpg',
+        'präsent' => 'Hans_Holbein,_the_Younger_-_Thomas_More_-_Google_Art_Project.jpg',
+        'führer' => 'George_Washington_by_Gilbert_Stuart_(Mount_Vernon_Ladies_Association).jpg',
+        'führung' => 'George_Washington_by_Gilbert_Stuart_(Mount_Vernon_Ladies_Association).jpg',
+    ];
+    foreach ($rules as $needle => $file) {
+        if (strpos($l, $needle) !== false) {
+            return $base . rawurlencode($file) . '?width=220';
+        }
+    }
+
+    return $base . rawurlencode('Johannes_Vermeer_-_Girl_with_a_Pearl_Earring_-_Google_Art_Project.jpg') . '?width=220';
+}
+
 function reference_image_url(string $label): string {
-    $key = safe_key($label);
+    $key = reference_label_key($label);
     $map = [
         'gracekelly' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Grace_Kelly_1955.jpg?width=180',
         'audreyhepburn' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Audrey_Hepburn_1959.jpg?width=180',
@@ -1577,6 +1613,7 @@ function reference_image_url(string $label): string {
         'benkingsley' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Ben_Kingsley_2014.jpg?width=180',
         'jksimmons' => 'https://commons.wikimedia.org/wiki/Special:FilePath/J._K._Simmons_by_Gage_Skidmore_2.jpg?width=180',
         'bryancranston' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Bryan_Cranston_2018.jpg?width=180',
+        'nickofferman' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Nick_Offerman_by_Gage_Skidmore.jpg?width=180',
         'seanconnery' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Sean_Connery_1983.jpg?width=180',
     ];
     return $map[$key] ?? '';

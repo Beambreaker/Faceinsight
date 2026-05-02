@@ -6,7 +6,7 @@
   <title>FaceInsight Premium Generator</title>
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#081525">
-  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260502-1500">
+  <link rel="stylesheet" href="assets/css/faceinsight.css?v=20260502-2000">
 </head>
 <body>
   <main class="fi-app" data-fi-app>
@@ -151,9 +151,9 @@
             <div class="fi-loading-bar"><i data-loading-bar></i></div>
             <strong data-loading-percent>0%</strong>
             <div class="fi-loading-game" data-loading-game>
-              <span>Mini-Challenge: Tippe den Stern bis 15/15</span>
-              <button type="button" data-loading-game-tap aria-label="Stern antippen">⭐</button>
-              <small data-loading-game-score>0 / 15</small>
+              <span>Ged&auml;chtnis: 6 Paare finden (3&times;4 Karten)</span>
+              <div class="fi-memory-grid" data-memory-grid role="group" aria-label="Gedaechtnis-Karten"></div>
+              <small data-loading-game-score>0 / 6 Paare</small>
             </div>
           </div>
 
@@ -304,7 +304,13 @@
     </section>
   </main>
 
-  <script src="assets/js/faceinsight.js?v=20260502-1500"></script>
+  <div class="fi-camera-gate" data-camera-gate hidden role="dialog" aria-modal="true" aria-labelledby="fi-camera-gate-title">
+    <div class="fi-camera-gate-panel">
+      <h2 id="fi-camera-gate-title">Kamera &amp; Auswertung</h2>
+      <p>Die Kamera dient nur deinen Frontfotos f&uuml;r die Analyse. Ohne deine Zustimmung im Browser startet sie nicht. Einwilligung zu nicht notwendigen Cookies kannst du unten &uuml;ber die Datenschutzleiste w&auml;hlen.</p>
+      <button type="button" class="fi-camera-gate-ok" data-camera-gate-ok>Verstanden, Kamera starten</button>
+    </div>
+  </div>
   <div class="fi-cookie-banner" data-cookie-banner hidden role="region" aria-label="Datenschutz und Speicherwahl">
     <div class="fi-cookie-banner-body">
       <p class="fi-cookie-intro">Du steuerst, was wir auf diesem Geraet dauerhaft speichern. <strong>Erforderlich</strong> bleibt immer aktiv fuer Ablauf, Sicherheit und Gastlinks; optional kannst du <strong>Komfort</strong> aktivieren.</p>
@@ -324,5 +330,6 @@
       </div>
     </div>
   </div>
+  <script src="assets/js/faceinsight.js?v=20260502-2000"></script>
 </body>
 </html>
