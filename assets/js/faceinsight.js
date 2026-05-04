@@ -290,6 +290,15 @@
     try {
       const quality = sampleVideoQuality(video);
       const face = await detectFace(video);
+      
+      // Fallback-Modus: Wenn Gesichtserkennung nicht verfügbar ist, zeige Meldung
+      if (face.fallback) {
+        setFrameState(key, "yellow", "Kamera wird initialisiert... Bitte warten.");
+        state.gates[key] = gateResult(false, "initializing", "Kamera wird vorbereitet.");
+        updateCaptureControls(key, false);
+        return;
+      }
+      
       const verdict = liveVerdict(key, quality, face, video.videoWidth, video.videoHeight);
 
       if (verdict.color !== "green") {
@@ -309,7 +318,6 @@
         msg = state.countdown ? "Automatische Aufnahme …" : "Halten … automatischer Ausloeser gleich.";
       }
       setFrameState(key, verdict.color, msg);
-      updateFaceRingPosition(key, face, video.videoWidth, video.videoHeight);
     } finally {
       state.detecting = false;
     }
@@ -321,17 +329,22 @@
       try {
         const result = landmarker.detectForVideo(video, performance.now());
         return faceFromLandmarker(result, video.videoWidth, video.videoHeight);
-      } catch (_) {}
+      } catch (e) {
+        console.warn("Landmarker Fehler, versuche Fallback:", e);
+      }
     }
     const detector = getFaceDetector();
-    if (!detector) return { supported: false, count: 0, box: null };
+    if (!detector) {
+      return { supported: false, count: 0, box: null, fallback: true };
+    }
     try {
       const faces = await detector.detect(video);
       const first = faces && faces[0] ? faces[0].boundingBox : null;
-      return { supported: true, count: faces.length, box: first };
-    } catch (_) {
-      return { supported: false, count: 0, box: null };
+      return { supported: true, count: faces.length, box: first, fallback: false };
+    } catch (e) {
+      console.warn("Face Detector Fehler:", e);
     }
+    return { supported: false, count: 0, box: null, fallback: true };
   }
 
   function faceFromLandmarker(result, width, height){
