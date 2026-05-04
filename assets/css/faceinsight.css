@@ -101,11 +101,11 @@ h1{color:#18212a;font-size:30px;letter-spacing:0;line-height:1.12;margin:7px 0 1
 .fi-frame video,.fi-frame img{display:none;height:100%;inset:0;position:absolute;width:100%;z-index:1}
 .fi-frame video{
   background:#08131e;
-  object-fit:contain;
+  object-fit:cover;
   object-position:center;
   transform:scaleX(-1);
 }
-.fi-frame img{background:#08131e;object-fit:contain}
+.fi-frame img{background:#08131e;object-fit:cover}
 .fi-photo-card.has-image .fi-frame img,.fi-photo-card.is-live .fi-frame video{display:block}
 .fi-face-ring{border:3px solid var(--red);border-radius:50% 50% 44% 44%;position:absolute;transition:border-color .2s,box-shadow .2s,left .1s,top .1s,width .1s,height .1s;z-index:3;box-shadow:0 0 0 1px rgba(217,83,79,.3)}
 .fi-face-ring span{border-top:1px solid rgba(255,255,255,.55);display:block;left:12%;position:absolute;right:12%;top:49%}

@@ -582,11 +582,26 @@
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d", { alpha: false });
-    ctx.fillStyle = "#f7fafc";
-    ctx.fillRect(0, 0, width, height);
     const sw = source.videoWidth || source.naturalWidth || source.width;
     const sh = source.videoHeight || source.naturalHeight || source.height;
-    const rect = containRect(sw, sh, width, height);
+    
+    // Cover/Crop Logik: Fuelle den 4:5 Rahmen komplett aus (wie CSS object-fit: cover)
+    const targetRatio = width / height;
+    const sourceRatio = sw / sh;
+    let sx, sy, sWidth, sHeight;
+    
+    if (sourceRatio > targetRatio) {
+      sHeight = sh;
+      sWidth = sh * targetRatio;
+      sx = (sw - sWidth) / 2;
+      sy = 0;
+    } else {
+      sWidth = sw;
+      sHeight = sw / targetRatio;
+      sx = 0;
+      sy = (sh - sHeight) / 2;
+    }
+
     ctx.save();
     if (mirror) {
       ctx.translate(width, 0);
@@ -594,23 +609,9 @@
     }
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(source, 0, 0, sw, sh, rect.x, rect.y, rect.width, rect.height);
+    ctx.drawImage(source, sx, sy, sWidth, sHeight, 0, 0, width, height);
     ctx.restore();
-    return { url: canvas.toDataURL("image/jpeg", 0.9), quality: measureQuality(ctx, width, height) };
-  }
-
-  function containRect(sw, sh, width, height){
-    const pad = 26;
-    const maxW = width - pad * 2;
-    const maxH = height - pad * 2;
-    const sourceRatio = sw / sh;
-    let outW = maxW;
-    let outH = outW / sourceRatio;
-    if (outH > maxH) {
-      outH = maxH;
-      outW = outH * sourceRatio;
-    }
-    return { x: (width - outW) / 2, y: (height - outH) / 2, width: outW, height: outH };
+    return { url: canvas.toDataURL("image/jpeg", 0.95), quality: measureQuality(ctx, width, height) };
   }
 
   function measureQuality(ctx, width, height){
@@ -690,21 +691,15 @@
 
   function updateFaceRingPosition(key, face, videoWidth, videoHeight){
     const ring = $(`[data-frame="${key}"] .fi-face-ring`);
-    if (!ring || !face.box) return;
-    const box = face.box;
-    const frame = $(`[data-frame="${key}"]`);
-    if (!frame) return;
-    const frameRect = frame.getBoundingClientRect();
-    const scaleX = frameRect.width / videoWidth;
-    const scaleY = frameRect.height / videoHeight;
-    const ringLeft = (box.x * scaleX) + (box.width * scaleX / 2);
-    const ringTop = (box.y * scaleY) + (box.height * scaleY / 2);
-    const ringSize = Math.max(box.width, box.height) * Math.max(scaleX, scaleY) * 1.15;
-    ring.style.left = ringLeft + "px";
-    ring.style.top = ringTop + "px";
-    ring.style.width = ringSize + "px";
-    ring.style.height = ringSize + "px";
-    ring.style.transform = "translate(-50%, -50%)";
+    if (!ring) return;
+    
+    // Zurueck zu einer stabileren, gefuehrten Position fuer Mobile
+    // Der Ring bleibt zentriert, reagiert aber farblich auf die Korrektheit
+    ring.style.left = "50%";
+    ring.style.top = "35%";
+    ring.style.width = "60%";
+    ring.style.height = "65%";
+    ring.style.transform = "translateX(-50%)";
   }
 
   function setFrameState(key, color, message){
