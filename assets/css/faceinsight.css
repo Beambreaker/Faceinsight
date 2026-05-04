@@ -107,16 +107,17 @@ h1{color:#18212a;font-size:30px;letter-spacing:0;line-height:1.12;margin:7px 0 1
 }
 .fi-frame img{background:#08131e;object-fit:contain}
 .fi-photo-card.has-image .fi-frame img,.fi-photo-card.is-live .fi-frame video{display:block}
-.fi-face-ring{border:3px solid var(--red);border-radius:50% 50% 44% 44%;height:61%;left:50%;position:absolute;top:13%;transform:translateX(-50%);transition:border-color .2s,box-shadow .2s;width:58%;z-index:3}
+.fi-face-ring{border:3px solid var(--red);border-radius:50% 50% 44% 44%;position:absolute;transition:border-color .2s,box-shadow .2s,left .1s,top .1s,width .1s,height .1s;z-index:3;box-shadow:0 0 0 1px rgba(217,83,79,.3)}
 .fi-face-ring span{border-top:1px solid rgba(255,255,255,.55);display:block;left:12%;position:absolute;right:12%;top:49%}
 .fi-photo-card.is-yellow .fi-face-ring{border-color:var(--yellow);box-shadow:0 0 24px rgba(223,172,49,.34)}
 .fi-photo-card.is-green .fi-face-ring{border-color:var(--green);box-shadow:0 0 30px rgba(31,166,107,.44)}
 .fi-frame-top{background:linear-gradient(180deg,rgba(6,17,27,.88),rgba(6,17,27,0));color:#fff;left:0;padding:14px;position:absolute;right:0;top:0;z-index:5}
 .fi-frame-top strong,.fi-frame-top small{display:block}
-.fi-frame-top small{color:#c7d7de;font-size:13px}
+.fi-frame-top strong{font-size:16px;font-weight:600}
+.fi-frame-top small{color:#c7d7de;font-size:13px;margin-top:4px}
 .fi-countdown{align-items:center;background:rgba(6,17,27,.78);border:3px solid var(--green);border-radius:999px;color:#fff;display:flex;font-size:78px;font-weight:900;height:150px;justify-content:center;left:50%;position:absolute;text-shadow:0 0 24px rgba(31,166,107,.7);top:50%;transform:translate(-50%,-50%);width:150px;z-index:8}
 .fi-countdown[hidden]{display:none}
-.fi-frame-capture{background:rgba(201,155,82,.96);border:0;border-radius:6px;bottom:14px;color:#17120a;font-weight:900;left:14px;min-height:50px;position:absolute;right:14px;z-index:7}
+.fi-frame-capture{background:rgba(201,155,82,.96);border:0;border-radius:6px;bottom:14px;color:#17120a;font-weight:900;left:14px;min-height:50px;position:absolute;right:14px;z-index:7;transition:background-color .2s,box-shadow .2s}.fi-frame-capture:not(:disabled){box-shadow:0 4px 12px rgba(201,155,82,.3)}
 .fi-frame-capture:disabled,.fi-actions-row button:disabled{background:rgba(115,128,140,.76)!important;color:#dfe8f0!important;opacity:.72}
 .fi-card-body,.fi-card-footer{display:flex;flex-direction:column;padding:16px}
 .fi-card-footer{justify-content:flex-end}

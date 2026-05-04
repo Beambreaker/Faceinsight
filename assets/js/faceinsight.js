@@ -309,6 +309,7 @@
         msg = state.countdown ? "Automatische Aufnahme …" : "Halten … automatischer Ausloeser gleich.";
       }
       setFrameState(key, verdict.color, msg);
+      updateFaceRingPosition(key, face, video.videoWidth, video.videoHeight);
     } finally {
       state.detecting = false;
     }
@@ -401,19 +402,19 @@
         if (box.nx !== undefined && (box.nx < .015 || box.ny < .015 || box.nx + box.nw > .985 || box.ny + box.nh > .985)) {
           return { color: "yellow", message: "Gesicht ist angeschnitten. Bitte vollstaendig in den Rahmen.", gate: gateResult(false, "face_cut_off", "Gesicht angeschnitten.", face) };
         }
-        if (cx < .34 || cx > .66 || cy < .24 || cy > .62) return { color: "yellow", message: "Gesicht mittiger und auf Augenhoehe halten.", gate: gateResult(false, "not_centered", "Gesicht nicht mittig.", face) };
-        if (size < .30) return { color: "yellow", message: "Etwas naeher an die Kamera.", gate: gateResult(false, "too_far", "Gesicht zu klein.", face) };
-        if (size > .74) return { color: "yellow", message: "Etwas weiter weg, Gesicht vollstaendig im Rahmen.", gate: gateResult(false, "too_close", "Gesicht zu gross.", face) };
+        if (cx < .30 || cx > .70 || cy < .20 || cy > .65) return { color: "yellow", message: "Gesicht mittiger und auf Augenhoehe halten. Nutze die Markierung als Leitlinie.", gate: gateResult(false, "not_centered", "Gesicht nicht mittig.", face) };
+        if (size < .25) return { color: "yellow", message: "Etwas naeher an die Kamera herantreten. Gesicht groesser machen.", gate: gateResult(false, "too_far", "Gesicht zu klein.", face) };
+        if (size > .78) return { color: "yellow", message: "Etwas weiter weg, damit das ganze Gesicht im Rahmen passt.", gate: gateResult(false, "too_close", "Gesicht zu gross.", face) };
       }
-      if (face.eyesOpenScore !== undefined && face.eyesOpenScore < .45) return { color: "yellow", message: "Bitte Augen offen halten.", gate: gateResult(false, "eyes_not_open", "Augen nicht sicher offen.", face) };
-      if (face.frontalScore !== undefined && face.frontalScore < .58 && key !== "side_profile") return { color: "yellow", message: "Bitte Kopf frontaler zur Kamera ausrichten.", gate: gateResult(false, "not_frontal", "Kopf nicht frontal genug.", face) };
+      if (face.eyesOpenScore !== undefined && face.eyesOpenScore < .40) return { color: "yellow", message: "Augen weiter oeffnen. Schaue direkt in die Kamera.", gate: gateResult(false, "eyes_not_open", "Augen nicht sicher offen.", face) };
+      if (face.frontalScore !== undefined && face.frontalScore < .55 && key !== "side_profile") return { color: "yellow", message: "Kopf gerader zur Kamera ausrichten. Nicht nach links oder rechts drehen.", gate: gateResult(false, "not_frontal", "Kopf nicht frontal genug.", face) };
     }
 
-    if (quality.brightness < 55 || quality.brightness > 218 || quality.sharpness < 5) {
-      return { color: "red", message: "Licht oder Schaerfe passt noch nicht. Handy ruhig und gerade halten.", gate: gateResult(false, "quality_low", "Licht oder Schaerfe passt nicht.", face) };
+    if (quality.brightness < 50 || quality.brightness > 220 || quality.sharpness < 4) {
+      return { color: "red", message: "Licht oder Schaerfe passt noch nicht. Handy ruhig halten und besseres Licht suchen.", gate: gateResult(false, "quality_low", "Licht oder Schaerfe passt nicht.", face) };
     }
-    if (quality.brightness < 78 || quality.brightness > 198 || quality.sharpness < 8 || quality.contrast < 18) {
-      return { color: "yellow", message: "Fast gut. Besseres Frontlicht oder etwas ruhiger halten.", gate: gateResult(false, "quality_borderline", "Bildqualitaet fast bereit.", face) };
+    if (quality.brightness < 75 || quality.brightness > 200 || quality.sharpness < 7 || quality.contrast < 16) {
+      return { color: "yellow", message: "Fast perfekt! Besseres Frontlicht oder Handy noch ruhiger halten.", gate: gateResult(false, "quality_borderline", "Bildqualitaet fast bereit.", face) };
     }
     const smileScore = typeof face.smileScore === "number" ? face.smileScore : Math.max(0, Math.min(1, quality.smileHint / 28));
     if (typeof face.smileScore === "number") quality.smileHint = Number((face.smileScore * 28).toFixed(1));
@@ -685,6 +686,25 @@
     if (key === "front_smile") {
       setCameraStatus("Perfekt. Beide Fotos sind bereit. Weiter mit Schritt 3.");
     }
+  }
+
+  function updateFaceRingPosition(key, face, videoWidth, videoHeight){
+    const ring = $(`[data-frame="${key}"] .fi-face-ring`);
+    if (!ring || !face.box) return;
+    const box = face.box;
+    const frame = $(`[data-frame="${key}"]`);
+    if (!frame) return;
+    const frameRect = frame.getBoundingClientRect();
+    const scaleX = frameRect.width / videoWidth;
+    const scaleY = frameRect.height / videoHeight;
+    const ringLeft = (box.x * scaleX) + (box.width * scaleX / 2);
+    const ringTop = (box.y * scaleY) + (box.height * scaleY / 2);
+    const ringSize = Math.max(box.width, box.height) * Math.max(scaleX, scaleY) * 1.15;
+    ring.style.left = ringLeft + "px";
+    ring.style.top = ringTop + "px";
+    ring.style.width = ringSize + "px";
+    ring.style.height = ringSize + "px";
+    ring.style.transform = "translate(-50%, -50%)";
   }
 
   function setFrameState(key, color, message){

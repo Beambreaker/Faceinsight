@@ -1014,10 +1014,10 @@ function openai_fast_report(array $payload, string $key): array {
         . 'Wenn ein Pflicht-Gate nicht sicher erfuellt ist, setze can_generate_report=false und nenne konkrete blocking_errors mit Retake-Hinweisen. '
         . 'Schaetze das optische Alter ausschliesslich aus den Fotos. Verwende das eingegebene Alter niemals als Anker oder Ersatz. Wenn die Person visuell deutlich aelter oder juenger wirkt, benenne das sachlich in age_mismatch_note. '
         . 'Analysiere sichtbar und respektvoll: Gesichtsgeometrie, Symmetrie, Augenpartie, Nase, Lippen, Kieferlinie, Falten, Kraehenfuesse, Hautbild, Porenwirkung, Haare, Bart falls sichtbar, Ohren, Zaehne falls sichtbar, Ausdruck und Laechelwirkung. '
-        . 'Nicht beleidigen, nicht sexualisieren, keine sensiblen Merkmale, keine medizinische Diagnose, keine Identifikation. Ehrlich, kritisch, verkaufsfaehig und knapp. '
-        . 'Der Report braucht mindestens 9 scores und mindestens 12 observations. Referenzen nur als modellbasierte visuelle Aehnlichkeit, bevorzugt historische oeffentliche Personen. '
+        . 'WICHTIG: Nicht beleidigen, nicht sexualisieren, keine sensiblen oder privaten Merkmale, keine medizinische Diagnose, keine Identifikation. Konzentriere dich auf positive, professionelle und verkaufsfaehige Aspekte. Ehrlich, kritisch, aber immer respektvoll und konstruktiv. '
+        . 'Der Report MUSS mindestens 9 unterschiedliche scores enthalten (z.B. Attraktivitaet, Vertrauenswirkung, Praesenz, etc.) und mindestens 12 detaillierte observations mit konkreten Beobachtungen. Referenzen nur als modellbasierte visuelle Aehnlichkeit, bevorzugt historische oeffentliche Personen. '
         . 'Nutzername: ' . $u['first_name'] . '. Eingegebenes Alter nur als Vergleichswert: ' . intval($u['age']) . '. Styling: ' . $u['makeup_status'] . '. '
-        . 'Antworte ausschliesslich im JSON-Schema.';
+        . 'Antworte ausschliesslich im JSON-Schema. Stelle sicher, dass alle Felder vollstaendig und aussagekraeftig gefuellt sind.';
 
     $result = openai_schema_request(stage_model('FACEINSIGHT_MODEL_REPORT', 'gpt-5.4-mini'), $prompt, image_parts($payload['images']), fast_report_schema(), $key, 5200);
     if (empty($result['success']) || !is_array($result['data'] ?? null)) {
@@ -1105,7 +1105,7 @@ function openai_analysis(array $payload, array $preflight, string $key): array {
         . 'Nutzername: ' . $u['first_name'] . '. Reales Alter: ' . intval($u['age']) . '. Selbstauskunft Geschlecht intern fuer sichere Wortwahl: ' . ($u['self_described_gender'] ?: 'nicht angegeben') . '. Make-up/Styling: ' . $u['makeup_status'] . '. '
         . 'KI-Fotopruefung: optisches Alter ' . safe_text($preflight['visual_age_estimate'] ?? '', 80) . '; Altersnotiz: ' . safe_text($preflight['age_mismatch_note'] ?? '', 160) . '. '
         . 'Lokale Fotoqualitaet: ' . implode(' | ', $quality) . '. '
-        . 'Antworte ausschliesslich im JSON-Schema.';
+        . 'Antworte ausschliesslich im JSON-Schema. Stelle sicher, dass alle Felder vollstaendig und aussagekraeftig gefuellt sind.';
 
     return openai_schema_request(analysis_model(), $prompt, image_parts($payload['images']), report_schema(), $key, 4200);
 }
